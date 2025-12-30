@@ -7,11 +7,18 @@ import { History } from './features/history/pages/History';
 import { Saved } from './features/saved/pages/Saved';
 import { Categories } from './features/categories/pages/Categories';
 
+// Admin imports
+import { AdminLayout } from './features/admin/components/AdminLayout';
+import { Dashboard } from './features/admin/pages/Dashboard';
+import { UserManagement } from './features/admin/pages/UserManagement';
+import { BookManagement } from './features/admin/pages/BookManagement';
+import { AuthorManagement } from './features/admin/pages/AuthorManagement';
+
 function App() {
   return (
     <Router>
       <Routes>
-        {/* Routes with Layout */}
+        {/* Public Routes with Layout */}
         <Route path="/" element={<Layout><Home /></Layout>} />
         <Route path="/book/:id" element={<Layout><BookDetails /></Layout>} />
         <Route path="/history" element={<Layout><History /></Layout>} />
@@ -22,6 +29,12 @@ function App() {
         
         {/* Reader without Header (minimal UI) */}
         <Route path="/read/:id" element={<ReadBook />} />
+
+        {/* Admin Routes */}
+        <Route path="/admin" element={<AdminLayout><Dashboard /></AdminLayout>} />
+        <Route path="/admin/users" element={<AdminLayout><UserManagement /></AdminLayout>} />
+        <Route path="/admin/books" element={<AdminLayout><BookManagement /></AdminLayout>} />
+        <Route path="/admin/authors" element={<AdminLayout><AuthorManagement /></AdminLayout>} />
       </Routes>
     </Router>
   );

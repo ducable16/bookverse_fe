@@ -1,5 +1,5 @@
 import { Link, useLocation } from 'react-router-dom';
-import { Home, History, BookMarked, LayoutGrid } from 'lucide-react';
+import { Home, History, BookMarked, LayoutGrid, Settings } from 'lucide-react';
 import { cn } from '@/features/shared/utils/cn';
 
 const navItems = [
@@ -49,7 +49,15 @@ export const Sidebar = () => {
           );
         })}
       </nav>
+
+      {/* Admin Link */}
+      <Link
+        to="/admin"
+        className="w-12 h-12 rounded-xl flex items-center justify-center text-gray-500 hover:bg-cream-200 hover:text-gray-700 transition-all duration-200 mb-4"
+        title="Admin Panel"
+      >
+        <Settings className="w-6 h-6" strokeWidth={1.5} />
+      </Link>
     </aside>
   );
 };
-
