@@ -9,14 +9,10 @@ import { Categories } from './features/categories/pages/Categories';
 
 // Admin imports
 import { AdminLayout } from './features/admin/components/AdminLayout';
-<<<<<<< HEAD
 import { Dashboard } from './features/admin/pages/Dashboard';
 import { UserManagement } from './features/admin/pages/UserManagement';
 import { BookManagement } from './features/admin/pages/BookManagement';
 import { AuthorManagement } from './features/admin/pages/AuthorManagement';
-=======
-import { Admin } from './features/admin/pages/Admin';
->>>>>>> 6cd3856ed10f6540887912c908fca38fdea82d1b
 
 function App() {
   return (
@@ -34,16 +30,11 @@ function App() {
         {/* Reader without Header (minimal UI) */}
         <Route path="/read/:id" element={<ReadBook />} />
 
-<<<<<<< HEAD
         {/* Admin Routes */}
         <Route path="/admin" element={<AdminLayout><Dashboard /></AdminLayout>} />
         <Route path="/admin/users" element={<AdminLayout><UserManagement /></AdminLayout>} />
         <Route path="/admin/books" element={<AdminLayout><BookManagement /></AdminLayout>} />
         <Route path="/admin/authors" element={<AdminLayout><AuthorManagement /></AdminLayout>} />
-=======
-        {/* Admin Route - Single route with tab-based navigation */}
-        <Route path="/admin" element={<AdminLayout><Admin /></AdminLayout>} />
->>>>>>> 6cd3856ed10f6540887912c908fca38fdea82d1b
       </Routes>
     </Router>
   );

@@ -110,11 +110,7 @@ export const BookDetails = () => {
             </div>
             <div>
               <div className="text-sm text-gray-500 mb-1">Genre</div>
-<<<<<<< HEAD
               <div className="font-medium text-gray-900">{book.genre.join(', ')}</div>
-=======
-              <div className="font-medium text-gray-900">{book.categories[0]?.name || 'N/A'}</div>
->>>>>>> 6cd3856ed10f6540887912c908fca38fdea82d1b
             </div>
             <div>
               <div className="text-sm text-gray-500 mb-1">Pages</div>

@@ -102,11 +102,7 @@ export const mockAdminBooks: AdminBook[] = [
     authorName: 'Đồng Vũ',
     coverUrl: 'https://images.unsplash.com/photo-1544947950-fa07a98d237f?w=400&h=600&fit=crop',
     description: 'Tống Thiên Thị luôn cảm thấy hàng xóm mới tới là người không dễ sống chung...',
-<<<<<<< HEAD
     genre: ['Romance', 'Drama'],
-=======
-    genre: 'Romance',
->>>>>>> 6cd3856ed10f6540887912c908fca38fdea82d1b
     status: 'published',
     totalChapters: 50,
     views: 15420,
@@ -120,11 +116,7 @@ export const mockAdminBooks: AdminBook[] = [
     authorName: 'Vô Hi',
     coverUrl: 'https://images.unsplash.com/photo-1543002588-bfa74002ed7e?w=400&h=600&fit=crop',
     description: 'Một câu chuyện trinh thám hấp dẫn...',
-<<<<<<< HEAD
     genre: ['Mystery', 'Thriller'],
-=======
-    genre: 'Mystery',
->>>>>>> 6cd3856ed10f6540887912c908fca38fdea82d1b
     status: 'published',
     totalChapters: 50,
     views: 28350,
@@ -138,11 +130,7 @@ export const mockAdminBooks: AdminBook[] = [
     authorName: 'Lê Bảo Ngọc',
     coverUrl: 'https://images.unsplash.com/photo-1512820790803-83ca734da794?w=400&h=600&fit=crop',
     description: 'Câu chuyện về một bác sĩ với quá khứ bí ẩn...',
-<<<<<<< HEAD
     genre: ['Thriller', 'Horror'],
-=======
-    genre: 'Thriller',
->>>>>>> 6cd3856ed10f6540887912c908fca38fdea82d1b
     status: 'draft',
     totalChapters: 35,
     views: 0,
@@ -156,11 +144,7 @@ export const mockAdminBooks: AdminBook[] = [
     authorName: 'Trúc Dĩ',
     coverUrl: 'https://images.unsplash.com/photo-1495446815901-a7297e633e8d?w=400&h=600&fit=crop',
     description: 'Một câu chuyện tình yêu ngọt ngào...',
-<<<<<<< HEAD
     genre: ['Romance', 'Comedy'],
-=======
-    genre: 'Romance',
->>>>>>> 6cd3856ed10f6540887912c908fca38fdea82d1b
     status: 'published',
     totalChapters: 45,
     views: 42100,
@@ -174,11 +158,7 @@ export const mockAdminBooks: AdminBook[] = [
     authorName: 'Fyodor Dostoevsky',
     coverUrl: 'https://images.unsplash.com/photo-1621351183012-e2f9972dd9bf?w=400&h=600&fit=crop',
     description: 'A passionate philosophical novel...',
-<<<<<<< HEAD
     genre: ['Classic', 'Drama'],
-=======
-    genre: 'Classic',
->>>>>>> 6cd3856ed10f6540887912c908fca38fdea82d1b
     status: 'archived',
     totalChapters: 100,
     views: 156000,

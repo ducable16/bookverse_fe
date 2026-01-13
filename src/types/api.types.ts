@@ -127,6 +127,40 @@ export interface UpdateCommentRequest {
     content: string;
 }
 
+// Review Types
+export interface Review {
+    id: number;
+    user: {
+        avatar?: string;
+        username: string;
+    };
+    rating: number;
+    comment: string;
+    createdAt: string;
+}
+
+// Reading History Types
+export interface ReadingHistory {
+    id: number;
+    book: {
+        id: number;
+        title: string;
+        coverImage: string;
+        rating: number;
+        totalReviews: number;
+        author: {
+            name: string;
+        };
+        categories: Array<{
+            name: string;
+        }>;
+    };
+    progress: number;
+    lastPage: number;
+    totalPages: number;
+    lastReadAt: string;
+}
+
 // Pagination
 export interface PaginationParams {
     page?: number;

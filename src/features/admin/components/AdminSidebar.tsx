@@ -1,20 +1,13 @@
-<<<<<<< HEAD
 import { Link, useLocation } from 'react-router-dom';
 import { 
   LayoutDashboard, 
   Users, 
   BookOpen, 
   PenTool,
-=======
-import { Link } from 'react-router-dom';
-import { 
-  BookOpen, 
->>>>>>> 6cd3856ed10f6540887912c908fca38fdea82d1b
   ChevronLeft,
   Settings,
   LogOut
 } from 'lucide-react';
-<<<<<<< HEAD
 import { cn } from '@/features/shared/utils/cn';
 
 const navItems = [
@@ -27,10 +20,6 @@ const navItems = [
 export const AdminSidebar = () => {
   const location = useLocation();
 
-=======
-
-export const AdminSidebar = () => {
->>>>>>> 6cd3856ed10f6540887912c908fca38fdea82d1b
   return (
     <aside className="fixed left-0 top-0 h-screen w-64 bg-gray-900 text-white flex flex-col z-40">
       {/* Logo */}
@@ -46,7 +35,6 @@ export const AdminSidebar = () => {
         </div>
       </div>
 
-<<<<<<< HEAD
       {/* Navigation */}
       <nav className="flex-1 py-6 px-4 space-y-1">
         {navItems.map((item) => {
@@ -71,10 +59,6 @@ export const AdminSidebar = () => {
           );
         })}
       </nav>
-=======
-      {/* Spacer */}
-      <div className="flex-1"></div>
->>>>>>> 6cd3856ed10f6540887912c908fca38fdea82d1b
 
       {/* Footer */}
       <div className="p-4 border-t border-gray-800 space-y-1">
@@ -100,7 +84,3 @@ export const AdminSidebar = () => {
     </aside>
   );
 };
-<<<<<<< HEAD
-
-=======
->>>>>>> 6cd3856ed10f6540887912c908fca38fdea82d1b

@@ -1,6 +1,5 @@
 import { useState } from 'react';
 import { AdminHeader } from '../components/AdminHeader';
-<<<<<<< HEAD
 import { Plus, Edit2, Trash2, Search, Filter, Eye, Upload, X } from 'lucide-react';
 import { mockAdminBooks, mockAuthors, genres } from '../data/mockData';
 import { AdminBook, Author } from '../types';
@@ -9,14 +8,6 @@ import { AuthorSelect } from '../components/AuthorSelect';
 export const BookManagement = () => {
   const [books, setBooks] = useState<AdminBook[]>(mockAdminBooks);
   const [authors, setAuthors] = useState<Author[]>(mockAuthors);
-=======
-import { Plus, Edit2, Trash2, Search, Filter, Eye } from 'lucide-react';
-import { mockAdminBooks, mockAuthors, genres } from '../data/mockData';
-import { AdminBook } from '../types';
-
-export const BookManagement = () => {
-  const [books, setBooks] = useState<AdminBook[]>(mockAdminBooks);
->>>>>>> 6cd3856ed10f6540887912c908fca38fdea82d1b
   const [searchQuery, setSearchQuery] = useState('');
   const [showModal, setShowModal] = useState(false);
   const [editingBook, setEditingBook] = useState<AdminBook | null>(null);
@@ -42,15 +33,9 @@ export const BookManagement = () => {
 
   const handleSave = (bookData: Partial<AdminBook>) => {
     if (editingBook) {
-<<<<<<< HEAD
       setBooks(books.map(b => b.id === editingBook.id ? { ...b, ...bookData, updatedAt: new Date().toISOString().split('T')[0] } : b));
     } else {
       const author = authors.find(a => a.id === bookData.authorId);
-=======
-      setBooks(books.map(b => b.id === editingBook.id ? { ...b, ...bookData } : b));
-    } else {
-      const author = mockAuthors.find(a => a.id === bookData.authorId);
->>>>>>> 6cd3856ed10f6540887912c908fca38fdea82d1b
       const newBook: AdminBook = {
         id: String(Date.now()),
         title: bookData.title || '',
@@ -58,15 +43,9 @@ export const BookManagement = () => {
         authorName: author?.name || '',
         coverUrl: bookData.coverUrl || 'https://images.unsplash.com/photo-1544947950-fa07a98d237f?w=400&h=600&fit=crop',
         description: bookData.description || '',
-<<<<<<< HEAD
         genre: bookData.genre || [],
         status: bookData.status || 'draft',
         totalChapters: 0,
-=======
-        genre: bookData.genre || 'Romance',
-        status: bookData.status || 'draft',
-        totalChapters: bookData.totalChapters || 0,
->>>>>>> 6cd3856ed10f6540887912c908fca38fdea82d1b
         views: 0,
         createdAt: new Date().toISOString().split('T')[0],
         updatedAt: new Date().toISOString().split('T')[0],
@@ -77,13 +56,10 @@ export const BookManagement = () => {
     setEditingBook(null);
   };
 
-<<<<<<< HEAD
   const handleAddAuthor = (newAuthor: Author) => {
     setAuthors([...authors, newAuthor]);
   };
 
-=======
->>>>>>> 6cd3856ed10f6540887912c908fca38fdea82d1b
   const formatViews = (views: number) => {
     if (views >= 1000) {
       return `${(views / 1000).toFixed(1)}K`;
@@ -165,7 +141,6 @@ export const BookManagement = () => {
                   </td>
                   <td className="px-6 py-4 text-gray-600">{book.authorName}</td>
                   <td className="px-6 py-4">
-<<<<<<< HEAD
                     <div className="flex flex-wrap gap-1">
                       {book.genre.map(g => (
                         <span key={g} className="px-2 py-0.5 bg-gray-100 text-gray-700 text-xs rounded-full">
@@ -173,11 +148,6 @@ export const BookManagement = () => {
                         </span>
                       ))}
                     </div>
-=======
-                    <span className="px-2 py-1 bg-gray-100 text-gray-700 text-xs rounded-full">
-                      {book.genre}
-                    </span>
->>>>>>> 6cd3856ed10f6540887912c908fca38fdea82d1b
                   </td>
                   <td className="px-6 py-4">
                     <span className={`px-3 py-1 text-xs font-medium rounded-full ${
@@ -228,10 +198,7 @@ export const BookManagement = () => {
           book={editingBook}
           onClose={() => { setShowModal(false); setEditingBook(null); }}
           onSave={handleSave}
-<<<<<<< HEAD
           onAddAuthor={handleAddAuthor}
-=======
->>>>>>> 6cd3856ed10f6540887912c908fca38fdea82d1b
         />
       )}
     </div>
@@ -242,7 +209,6 @@ interface BookModalProps {
   book: AdminBook | null;
   onClose: () => void;
   onSave: (data: Partial<AdminBook>) => void;
-<<<<<<< HEAD
   onAddAuthor: (author: Author) => void;
 }
 
@@ -292,28 +258,10 @@ const BookModal = ({ book, onClose, onSave, onAddAuthor }: BookModalProps) => {
       alert('Vui lòng chọn ít nhất một thể loại');
       return;
     }
-=======
-}
-
-const BookModal = ({ book, onClose, onSave }: BookModalProps) => {
-  const [formData, setFormData] = useState({
-    title: book?.title || '',
-    authorId: book?.authorId || '',
-    coverUrl: book?.coverUrl || '',
-    description: book?.description || '',
-    genre: book?.genre || 'Romance',
-    status: book?.status || 'draft',
-    totalChapters: book?.totalChapters || 0,
-  });
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
->>>>>>> 6cd3856ed10f6540887912c908fca38fdea82d1b
     onSave(formData);
   };
 
   return (
-<<<<<<< HEAD
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
       <div className="bg-white rounded-xl w-full max-w-3xl max-h-[90vh] overflow-y-auto">
         <div className="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between">
@@ -359,54 +307,6 @@ const BookModal = ({ book, onClose, onSave }: BookModalProps) => {
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">Trạng thái</label>
-=======
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-      <div className="bg-white rounded-xl w-full max-w-2xl p-6 max-h-[90vh] overflow-y-auto">
-        <h2 className="text-xl font-bold mb-6">
-          {book ? 'Chỉnh sửa sách' : 'Thêm sách mới'}
-        </h2>
-        
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="grid grid-cols-2 gap-4">
-            <div className="col-span-2">
-              <label className="block text-sm font-medium text-gray-700 mb-1">Tên sách</label>
-              <input 
-                type="text"
-                value={formData.title}
-                onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-coral-400"
-                required
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Tác giả</label>
-              <select 
-                value={formData.authorId}
-                onChange={(e) => setFormData({ ...formData, authorId: e.target.value })}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-coral-400"
-                required
-              >
-                <option value="">Chọn tác giả</option>
-                {mockAuthors.map(author => (
-                  <option key={author.id} value={author.id}>{author.name}</option>
-                ))}
-              </select>
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Thể loại</label>
-              <select 
-                value={formData.genre}
-                onChange={(e) => setFormData({ ...formData, genre: e.target.value })}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-coral-400"
-              >
-                {genres.map(genre => (
-                  <option key={genre} value={genre}>{genre}</option>
-                ))}
-              </select>
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Trạng thái</label>
->>>>>>> 6cd3856ed10f6540887912c908fca38fdea82d1b
               <select 
                 value={formData.status}
                 onChange={(e) => setFormData({ ...formData, status: e.target.value as AdminBook['status'] })}
@@ -417,7 +317,6 @@ const BookModal = ({ book, onClose, onSave }: BookModalProps) => {
                 <option value="archived">Lưu trữ</option>
               </select>
             </div>
-<<<<<<< HEAD
           </div>
 
           {/* Ảnh bìa - Upload */}
@@ -511,54 +410,12 @@ const BookModal = ({ book, onClose, onSave }: BookModalProps) => {
               type="button"
               onClick={onClose}
               className="px-6 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors font-medium"
-=======
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Số chương</label>
-              <input 
-                type="number"
-                value={formData.totalChapters}
-                onChange={(e) => setFormData({ ...formData, totalChapters: Number(e.target.value) })}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-coral-400"
-                min="0"
-              />
-            </div>
-            <div className="col-span-2">
-              <label className="block text-sm font-medium text-gray-700 mb-1">URL ảnh bìa</label>
-              <input 
-                type="url"
-                value={formData.coverUrl}
-                onChange={(e) => setFormData({ ...formData, coverUrl: e.target.value })}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-coral-400"
-                placeholder="https://..."
-              />
-            </div>
-            <div className="col-span-2">
-              <label className="block text-sm font-medium text-gray-700 mb-1">Mô tả</label>
-              <textarea 
-                value={formData.description}
-                onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-coral-400 h-32 resize-none"
-                placeholder="Nhập mô tả sách..."
-              />
-            </div>
-          </div>
-          
-          <div className="flex justify-end space-x-3 pt-4">
-            <button 
-              type="button"
-              onClick={onClose}
-              className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
->>>>>>> 6cd3856ed10f6540887912c908fca38fdea82d1b
             >
               Hủy
             </button>
             <button 
               type="submit"
-<<<<<<< HEAD
               className="px-6 py-2 bg-coral-500 text-white rounded-lg hover:bg-coral-600 transition-colors font-medium"
-=======
-              className="px-4 py-2 bg-coral-500 text-white rounded-lg hover:bg-coral-600 transition-colors"
->>>>>>> 6cd3856ed10f6540887912c908fca38fdea82d1b
             >
               {book ? 'Cập nhật' : 'Thêm mới'}
             </button>
@@ -568,7 +425,3 @@ const BookModal = ({ book, onClose, onSave }: BookModalProps) => {
     </div>
   );
 };
-<<<<<<< HEAD
-=======
-
->>>>>>> 6cd3856ed10f6540887912c908fca38fdea82d1b
