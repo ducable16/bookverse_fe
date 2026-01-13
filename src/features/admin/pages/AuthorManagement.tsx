@@ -1,7 +1,12 @@
 import { useState } from 'react';
 import { AdminHeader } from '../components/AdminHeader';
+<<<<<<< HEAD
 import { Plus, Edit2, Trash2, Search, BookOpen, Upload, X, Eye } from 'lucide-react';
 import { mockAuthors, mockAdminBooks } from '../data/mockData';
+=======
+import { Plus, Edit2, Trash2, Search, BookOpen } from 'lucide-react';
+import { mockAuthors } from '../data/mockData';
+>>>>>>> 6cd3856ed10f6540887912c908fca38fdea82d1b
 import { Author } from '../types';
 
 export const AuthorManagement = () => {
@@ -9,8 +14,11 @@ export const AuthorManagement = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [showModal, setShowModal] = useState(false);
   const [editingAuthor, setEditingAuthor] = useState<Author | null>(null);
+<<<<<<< HEAD
   const [showBooksModal, setShowBooksModal] = useState(false);
   const [selectedAuthorBooks, setSelectedAuthorBooks] = useState<{ authorName: string; books: typeof mockAdminBooks }>({ authorName: '', books: [] });
+=======
+>>>>>>> 6cd3856ed10f6540887912c908fca38fdea82d1b
 
   const filteredAuthors = authors.filter(author => 
     author.name.toLowerCase().includes(searchQuery.toLowerCase())
@@ -45,6 +53,7 @@ export const AuthorManagement = () => {
     setEditingAuthor(null);
   };
 
+<<<<<<< HEAD
   const handleViewBooks = (author: Author) => {
     // Filter books by author
     const authorBooks = mockAdminBooks.filter(book => book.authorId === author.id);
@@ -52,6 +61,8 @@ export const AuthorManagement = () => {
     setShowBooksModal(true);
   };
 
+=======
+>>>>>>> 6cd3856ed10f6540887912c908fca38fdea82d1b
   return (
     <div>
       <AdminHeader 
@@ -87,33 +98,52 @@ export const AuthorManagement = () => {
             <div key={author.id} className="bg-white rounded-xl shadow-sm p-6 hover:shadow-md transition-shadow">
               <div className="flex items-start justify-between mb-4">
                 <div className="flex items-center space-x-4">
+<<<<<<< HEAD
                   <div className="w-16 h-16 bg-gray-200 rounded-full flex items-center justify-center overflow-hidden flex-shrink-0">
+=======
+                  <div className="w-16 h-16 bg-gray-200 rounded-full flex items-center justify-center overflow-hidden">
+>>>>>>> 6cd3856ed10f6540887912c908fca38fdea82d1b
                     {author.avatar ? (
                       <img src={author.avatar} alt={author.name} className="w-16 h-16 object-cover" />
                     ) : (
                       <span className="text-2xl text-gray-600 font-medium">{author.name.charAt(0)}</span>
                     )}
                   </div>
+<<<<<<< HEAD
                   <div className="min-w-0">
                     <h3 className="font-bold text-gray-900 truncate">{author.name}</h3>
+=======
+                  <div>
+                    <h3 className="font-bold text-gray-900">{author.name}</h3>
+>>>>>>> 6cd3856ed10f6540887912c908fca38fdea82d1b
                     <div className="flex items-center space-x-1 text-sm text-gray-500 mt-1">
                       <BookOpen className="w-4 h-4" />
                       <span>{author.booksCount} sách</span>
                     </div>
                   </div>
                 </div>
+<<<<<<< HEAD
                 <div className="flex items-center space-x-1 flex-shrink-0">
                   <button 
                     onClick={() => handleEdit(author)}
                     className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
                     title="Chỉnh sửa"
+=======
+                <div className="flex items-center space-x-1">
+                  <button 
+                    onClick={() => handleEdit(author)}
+                    className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+>>>>>>> 6cd3856ed10f6540887912c908fca38fdea82d1b
                   >
                     <Edit2 className="w-4 h-4 text-gray-600" />
                   </button>
                   <button 
                     onClick={() => handleDelete(author.id)}
                     className="p-2 hover:bg-red-50 rounded-lg transition-colors"
+<<<<<<< HEAD
                     title="Xóa"
+=======
+>>>>>>> 6cd3856ed10f6540887912c908fca38fdea82d1b
                   >
                     <Trash2 className="w-4 h-4 text-red-500" />
                   </button>
@@ -124,6 +154,7 @@ export const AuthorManagement = () => {
                 <p className="text-gray-600 text-sm line-clamp-3 mb-4">{author.bio}</p>
               )}
               
+<<<<<<< HEAD
               <div className="flex items-center justify-between pt-4 border-t border-gray-100">
                 <div className="text-xs text-gray-400">
                   Ngày thêm: {author.createdAt}
@@ -135,6 +166,10 @@ export const AuthorManagement = () => {
                   <Eye className="w-4 h-4" />
                   <span>Xem sách</span>
                 </button>
+=======
+              <div className="text-xs text-gray-400">
+                Ngày thêm: {author.createdAt}
+>>>>>>> 6cd3856ed10f6540887912c908fca38fdea82d1b
               </div>
             </div>
           ))}
@@ -147,7 +182,11 @@ export const AuthorManagement = () => {
         )}
       </div>
 
+<<<<<<< HEAD
       {/* Author Modal */}
+=======
+      {/* Modal */}
+>>>>>>> 6cd3856ed10f6540887912c908fca38fdea82d1b
       {showModal && (
         <AuthorModal 
           author={editingAuthor}
@@ -155,6 +194,7 @@ export const AuthorManagement = () => {
           onSave={handleSave}
         />
       )}
+<<<<<<< HEAD
 
       {/* Books List Modal */}
       {showBooksModal && (
@@ -164,6 +204,8 @@ export const AuthorManagement = () => {
           onClose={() => setShowBooksModal(false)}
         />
       )}
+=======
+>>>>>>> 6cd3856ed10f6540887912c908fca38fdea82d1b
     </div>
   );
 };
@@ -180,6 +222,7 @@ const AuthorModal = ({ author, onClose, onSave }: AuthorModalProps) => {
     bio: author?.bio || '',
     avatar: author?.avatar || '',
   });
+<<<<<<< HEAD
   const [avatarPreview, setAvatarPreview] = useState(author?.avatar || '');
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -200,6 +243,8 @@ const AuthorModal = ({ author, onClose, onSave }: AuthorModalProps) => {
       reader.readAsDataURL(file);
     }
   };
+=======
+>>>>>>> 6cd3856ed10f6540887912c908fca38fdea82d1b
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -207,6 +252,7 @@ const AuthorModal = ({ author, onClose, onSave }: AuthorModalProps) => {
   };
 
   return (
+<<<<<<< HEAD
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
       <div className="bg-white rounded-xl w-full max-w-md">
         <div className="flex items-center justify-between p-4 border-b border-gray-200">
@@ -223,6 +269,17 @@ const AuthorModal = ({ author, onClose, onSave }: AuthorModalProps) => {
             <label className="block text-sm font-medium text-gray-700 mb-1">
               Tên tác giả <span className="text-red-500">*</span>
             </label>
+=======
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+      <div className="bg-white rounded-xl w-full max-w-md p-6">
+        <h2 className="text-xl font-bold mb-6">
+          {author ? 'Chỉnh sửa tác giả' : 'Thêm tác giả mới'}
+        </h2>
+        
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Tên tác giả</label>
+>>>>>>> 6cd3856ed10f6540887912c908fca38fdea82d1b
             <input 
               type="text"
               value={formData.name}
@@ -231,6 +288,7 @@ const AuthorModal = ({ author, onClose, onSave }: AuthorModalProps) => {
               required
             />
           </div>
+<<<<<<< HEAD
 
           {/* Upload ảnh */}
           <div>
@@ -272,6 +330,18 @@ const AuthorModal = ({ author, onClose, onSave }: AuthorModalProps) => {
             </div>
           </div>
 
+=======
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">URL ảnh đại diện</label>
+            <input 
+              type="url"
+              value={formData.avatar}
+              onChange={(e) => setFormData({ ...formData, avatar: e.target.value })}
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-coral-400"
+              placeholder="https://..."
+            />
+          </div>
+>>>>>>> 6cd3856ed10f6540887912c908fca38fdea82d1b
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Tiểu sử</label>
             <textarea 
@@ -303,6 +373,7 @@ const AuthorModal = ({ author, onClose, onSave }: AuthorModalProps) => {
   );
 };
 
+<<<<<<< HEAD
 interface BooksListModalProps {
   authorName: string;
   books: typeof mockAdminBooks;
@@ -373,3 +444,5 @@ const BooksListModal = ({ authorName, books, onClose }: BooksListModalProps) => 
     </div>
   );
 };
+=======
+>>>>>>> 6cd3856ed10f6540887912c908fca38fdea82d1b

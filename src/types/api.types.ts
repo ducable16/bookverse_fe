@@ -1,0 +1,141 @@
+/**
+ * API Response Types
+ * TypeScript interfaces for API responses
+ */
+
+// Base API Response - All server responses follow this structure
+export interface ApiResponse<T = any> {
+    code: number;
+    message: string;
+    data: T;
+}
+
+// Auth Types
+export interface LoginRequest {
+    username: string;
+    password: string;
+}
+
+export interface LoginResponse {
+    token: string;
+    userId: number;
+    username: string;
+}
+
+export interface RegisterRequest {
+    username: string;
+    email: string;
+    password: string;
+    fullName: string;
+}
+
+export interface User {
+    id: number;
+    username: string;
+    email: string;
+    fullName: string;
+}
+
+// Author Types
+export interface Author {
+    id: number;
+    name: string;
+    biography?: string;
+}
+
+export interface CreateAuthorRequest {
+    name: string;
+    biography: string;
+}
+
+export interface UpdateAuthorRequest {
+    name: string;
+    biography: string;
+}
+
+// Book Types
+export interface Book {
+    id: number;
+    title: string;
+    slug: string;
+    description: string;
+    authorId: number;
+    authorName: string;
+    categoryId: number;
+    categoryName: string;
+    publishedYear: number;
+    isbn: string;
+    coverImage: string;
+    price: number;
+}
+
+export interface CreateBookRequest {
+    title: string;
+    description: string;
+    authorId: number;
+    categoryId: number;
+    publishedYear: number;
+    isbn: string;
+    coverImage: string;
+    price: number;
+}
+
+export interface UpdateBookRequest {
+    title: string;
+    description: string;
+    authorId: number;
+    categoryId: number;
+    publishedYear: number;
+    isbn: string;
+    coverImage: string;
+    price: number;
+}
+
+// Category Types
+export interface Category {
+    id: number;
+    name: string;
+    slug: string;
+    description?: string;
+}
+
+export interface CreateCategoryRequest {
+    name: string;
+    description: string;
+}
+
+export interface UpdateCategoryRequest {
+    name: string;
+    description: string;
+}
+
+// Comment Types
+export interface Comment {
+    id: number;
+    userId: number;
+    username: string;
+    content: string;
+    createdAt: string;
+}
+
+export interface CreateCommentRequest {
+    userId: number;
+    content: string;
+}
+
+export interface UpdateCommentRequest {
+    content: string;
+}
+
+// Pagination
+export interface PaginationParams {
+    page?: number;
+    size?: number;
+}
+
+// Error Types
+export interface ApiError {
+    message: string;
+    statusCode: number;
+    errors?: Record<string, string[]>;
+}
