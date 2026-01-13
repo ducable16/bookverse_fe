@@ -61,7 +61,7 @@ export const BookDetails = () => {
             </div>
             <div>
               <div className="text-sm text-gray-500 mb-1">Genre</div>
-              <div className="font-medium text-gray-900">{book.genre}</div>
+              <div className="font-medium text-gray-900">{book.genre.join(', ')}</div>
             </div>
             <div>
               <div className="text-sm text-gray-500 mb-1">Producer</div>

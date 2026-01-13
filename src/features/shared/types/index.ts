@@ -4,7 +4,7 @@ export interface Book {
   author: string;
   coverUrl: string;
   description: string;
-  genre: string;
+  genre: string[];
   rating: number;
   reviewCount: number;
   producer?: string;

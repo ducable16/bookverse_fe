@@ -25,7 +25,7 @@ export interface AdminBook {
   authorName: string;
   coverUrl: string;
   description: string;
-  genre: string;
+  genre: string[];
   status: 'published' | 'draft' | 'archived';
   totalChapters: number;
   views: number;
