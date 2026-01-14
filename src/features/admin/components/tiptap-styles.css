@@ -1,0 +1,249 @@
+/* Tiptap Editor Styles - Notion-like */
+
+.tiptap-editor-container {
+  @apply w-full;
+}
+
+/* Editor Content Area */
+.ProseMirror {
+  @apply min-h-[400px] p-6 focus:outline-none;
+}
+
+/* Placeholder */
+.ProseMirror p.is-editor-empty:first-child::before {
+  content: attr(data-placeholder);
+  @apply text-gray-400 float-left h-0 pointer-events-none;
+}
+
+/* Typography - Notion-like styles */
+.ProseMirror h1 {
+  @apply text-4xl font-bold mb-4 mt-8 text-gray-900;
+}
+
+.ProseMirror h2 {
+  @apply text-3xl font-bold mb-3 mt-6 text-gray-900;
+}
+
+.ProseMirror h3 {
+  @apply text-2xl font-bold mb-2 mt-4 text-gray-900;
+}
+
+.ProseMirror p {
+  @apply text-base leading-7 mb-4 text-gray-800;
+}
+
+/* Lists */
+.ProseMirror ul {
+  @apply list-disc pl-6 mb-4 space-y-2;
+}
+
+.ProseMirror ol {
+  @apply list-decimal pl-6 mb-4 space-y-2;
+}
+
+.ProseMirror li {
+  @apply text-base leading-7 text-gray-800;
+}
+
+.ProseMirror li p {
+  @apply mb-0;
+}
+
+/* Blockquote */
+.ProseMirror blockquote {
+  @apply border-l-4 border-gray-300 pl-4 py-2 my-4 text-gray-700 italic bg-gray-50;
+}
+
+/* Code Block */
+.ProseMirror .code-block {
+  @apply bg-gray-900 text-gray-100 rounded-lg p-4 my-4 font-mono text-sm overflow-x-auto;
+}
+
+.ProseMirror .code-block pre {
+  @apply m-0 p-0 bg-transparent;
+}
+
+.ProseMirror .code-block code {
+  @apply bg-transparent text-gray-100 p-0;
+}
+
+/* Inline Code */
+.ProseMirror code {
+  @apply bg-gray-100 text-coral-600 px-2 py-1 rounded text-sm font-mono;
+}
+
+/* Link */
+.ProseMirror a {
+  @apply text-coral-600 underline hover:text-coral-700 cursor-pointer;
+}
+
+/* Image */
+.ProseMirror img {
+  @apply max-w-full h-auto rounded-lg my-4;
+}
+
+/* Highlight */
+.ProseMirror mark {
+  @apply bg-yellow-200 px-0.5;
+}
+
+/* Selection */
+.ProseMirror::selection {
+  @apply bg-coral-100;
+}
+
+.ProseMirror *::selection {
+  @apply bg-coral-100;
+}
+
+/* Horizontal Rule */
+.ProseMirror hr {
+  @apply border-t-2 border-gray-200 my-8;
+}
+
+/* Bubble Menu */
+.bubble-menu {
+  animation: fadeIn 0.2s ease-in-out;
+}
+
+/* Floating Menu */
+.floating-menu {
+  animation: slideIn 0.2s ease-in-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateX(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+/* Focus styles */
+.ProseMirror:focus {
+  @apply outline-none;
+}
+
+/* Empty paragraph placeholder */
+.ProseMirror p.is-empty:not(.is-editor-empty)::before {
+  content: '';
+  @apply inline-block;
+}
+
+/* Better spacing for nested lists */
+.ProseMirror ul ul,
+.ProseMirror ol ul,
+.ProseMirror ul ol,
+.ProseMirror ol ol {
+  @apply mt-2;
+}
+
+/* Task list (optional, if you add task list extension later) */
+.ProseMirror ul[data-type="taskList"] {
+  @apply list-none pl-0;
+}
+
+.ProseMirror ul[data-type="taskList"] li {
+  @apply flex items-start;
+}
+
+.ProseMirror ul[data-type="taskList"] li input[type="checkbox"] {
+  @apply mr-2 mt-1;
+}
+
+/* Draggable handle (if you add drag handle extension) */
+.drag-handle {
+  @apply cursor-grab opacity-0 transition-opacity;
+}
+
+.ProseMirror:hover .drag-handle {
+  @apply opacity-100;
+}
+
+/* Code highlighting (syntax highlighting) */
+.ProseMirror .hljs-comment,
+.ProseMirror .hljs-quote {
+  @apply text-gray-500;
+}
+
+.ProseMirror .hljs-keyword,
+.ProseMirror .hljs-selector-tag,
+.ProseMirror .hljs-addition {
+  @apply text-green-400;
+}
+
+.ProseMirror .hljs-number,
+.ProseMirror .hljs-string,
+.ProseMirror .hljs-meta .hljs-meta-string,
+.ProseMirror .hljs-literal,
+.ProseMirror .hljs-doctag,
+.ProseMirror .hljs-regexp {
+  @apply text-blue-400;
+}
+
+.ProseMirror .hljs-title,
+.ProseMirror .hljs-section,
+.ProseMirror .hljs-name,
+.ProseMirror .hljs-selector-id,
+.ProseMirror .hljs-selector-class {
+  @apply text-yellow-400;
+}
+
+.ProseMirror .hljs-attribute,
+.ProseMirror .hljs-attr,
+.ProseMirror .hljs-variable,
+.ProseMirror .hljs-template-variable,
+.ProseMirror .hljs-class .hljs-title,
+.ProseMirror .hljs-type {
+  @apply text-orange-400;
+}
+
+.ProseMirror .hljs-symbol,
+.ProseMirror .hljs-bullet,
+.ProseMirror .hljs-subst,
+.ProseMirror .hljs-meta,
+.ProseMirror .hljs-meta .hljs-keyword,
+.ProseMirror .hljs-selector-attr,
+.ProseMirror .hljs-selector-pseudo,
+.ProseMirror .hljs-link {
+  @apply text-purple-400;
+}
+
+.ProseMirror .hljs-built_in,
+.ProseMirror .hljs-deletion {
+  @apply text-red-400;
+}
+
+/* Responsive adjustments */
+@media (max-width: 640px) {
+  .ProseMirror {
+    @apply p-4;
+  }
+
+  .ProseMirror h1 {
+    @apply text-3xl;
+  }
+
+  .ProseMirror h2 {
+    @apply text-2xl;
+  }
+
+  .ProseMirror h3 {
+    @apply text-xl;
+  }
+}
+

@@ -19,7 +19,7 @@ export const booksService = {
         const response: ApiResponse<Book[]> = await apiClient.get(
             API_ENDPOINTS.BOOKS.LIST
         );
-        return response.data.data || [];
+        return response.data || [];
     },
 
     // Get book by ID

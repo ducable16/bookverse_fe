@@ -19,8 +19,8 @@ export const uploadService = {
 
         console.log('📤 Uploading image...', file.name);
 
-        // Server returns { url: "..." } (wrapped in response.data by Spring Boot)
-        const response: { url: string } = await apiClient.post(
+        // apiClient returns {code, message, data: {url}}
+        const response: any = await apiClient.post(
             API_ENDPOINTS.UPLOAD,
             formData,
             {
@@ -31,16 +31,16 @@ export const uploadService = {
         );
 
         console.log('✅ Upload response:', response);
-        
-        // Interceptor returns response.data, which is { url: "..." }
-        // So we access response.url directly
-        if (!response.url) {
+
+        // Response structure: {code, message, data: {url}}
+        // So we need response.data.url
+        if (!response.data?.url) {
             console.error('❌ No URL in response:', response);
             throw new Error('Upload failed: No URL in response');
         }
 
-        console.log('🔗 URL received:', response.url);
-        return response.url;
+        console.log('🔗 URL received:', response.data.url);
+        return response.data.url;
     },
 
     /**

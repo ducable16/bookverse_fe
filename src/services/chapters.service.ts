@@ -16,16 +16,24 @@ export const chaptersService = {
     getByBook: async (bookId: number): Promise<ChapterResponse[]> => {
         const response = await apiClient.get<ApiResponse<ChapterResponse[]>>(
             API_ENDPOINTS.CHAPTERS.BY_BOOK(bookId)
-        );
-        return response.data.data;
+        ) as ApiResponse<ChapterResponse[]>;
+        return response.data;
     },
 
     // Get chapter by ID
     getById: async (chapterId: number): Promise<ChapterResponse> => {
         const response = await apiClient.get<ApiResponse<ChapterResponse>>(
             API_ENDPOINTS.CHAPTERS.DETAIL(chapterId)
-        );
-        return response.data.data;
+        ) as ApiResponse<ChapterResponse>;
+        return response.data;
+    },
+
+    // Get chapter by book ID and chapter number
+    getByBookAndNumber: async (bookId: number, chapterNumber: number): Promise<ChapterResponse> => {
+        const response = await apiClient.get<ApiResponse<ChapterResponse>>(
+            API_ENDPOINTS.CHAPTERS.BY_BOOK_AND_NUMBER(bookId, chapterNumber)
+        ) as ApiResponse<ChapterResponse>;
+        return response.data;
     },
 
     // Create chapter
@@ -33,8 +41,8 @@ export const chaptersService = {
         const response = await apiClient.post<ApiResponse<ChapterResponse>>(
             API_ENDPOINTS.CHAPTERS.CREATE,
             chapterData
-        );
-        return response.data.data;
+        ) as ApiResponse<ChapterResponse>;
+        return response.data;
     },
 
     // Update chapter
@@ -42,8 +50,8 @@ export const chaptersService = {
         const response = await apiClient.post<ApiResponse<ChapterResponse>>(
             API_ENDPOINTS.CHAPTERS.UPDATE(chapterId),
             chapterData
-        );
-        return response.data.data;
+        ) as ApiResponse<ChapterResponse>;
+        return response.data;
     },
 
     // Delete chapter

@@ -60,6 +60,7 @@ export interface Author {
     id: number;
     name: string;
     biography?: string;
+    avatarUrl?: string;
 }
 
 export interface AuthorResponse {

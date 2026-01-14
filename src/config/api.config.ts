@@ -64,11 +64,13 @@ export const API_ENDPOINTS = {
 
     // Chapters endpoints
     CHAPTERS: {
-        BY_BOOK: (bookId: string | number) => `/books/${bookId}/chapters`,
-        DETAIL: (chapterId: string | number) => `/chapters/${chapterId}`,
-        CREATE: '/chapters/create',
-        UPDATE: (chapterId: string | number) => `/chapters/update/${chapterId}`,
-        DELETE: (chapterId: string | number) => `/chapters/delete/${chapterId}`,
+        BY_BOOK: (bookId: string | number) => `/chapter/book/${bookId}`,
+        DETAIL: (chapterId: string | number) => `/chapter/detail/${chapterId}`,
+        BY_BOOK_AND_NUMBER: (bookId: string | number, chapterNumber: number) =>
+            `/chapter/book/${bookId}/number/${chapterNumber}`,
+        CREATE: '/chapter/create',
+        UPDATE: (chapterId: string | number) => `/chapter/update/${chapterId}`,
+        DELETE: (chapterId: string | number) => `/chapter/delete/${chapterId}`,
     },
 
     // Upload endpoint

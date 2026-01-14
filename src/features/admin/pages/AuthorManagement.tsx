@@ -10,6 +10,7 @@ const mapApiAuthorToLocal = (apiAuthor: ApiAuthor): Author => ({
   id: String(apiAuthor.id),
   name: apiAuthor.name,
   bio: apiAuthor.biography || '',
+  avatar: apiAuthor.avatarUrl || undefined,
   booksCount: 0,
   createdAt: new Date().toISOString().split('T')[0],
 });
@@ -34,22 +35,22 @@ export const AuthorManagement = () => {
     try {
       setLoading(true);
       setError(null);
-      
+
       console.log('🔍 Fetching authors from API...');
       const apiAuthors = await authorsService.getAll();
-      
+
       console.log('✅ API Response received:', apiAuthors);
       console.log('📊 Type:', Array.isArray(apiAuthors) ? 'Array' : typeof apiAuthors);
       console.log('📏 Length:', Array.isArray(apiAuthors) ? apiAuthors.length : 'N/A');
-      
+
       if (!Array.isArray(apiAuthors)) {
         console.error('❌ API response is not an array:', apiAuthors);
         throw new Error('Invalid API response format');
       }
-      
+
       const mappedAuthors = apiAuthors.map(mapApiAuthorToLocal);
       console.log('🔄 Mapped authors:', mappedAuthors);
-      
+
       setAuthors(mappedAuthors);
       console.log('✨ Authors state updated with', mappedAuthors.length, 'items');
     } catch (err) {
@@ -298,10 +299,10 @@ const AuthorModal = ({ author, onClose, onSave }: AuthorModalProps) => {
       // Upload to server
       setUploading(true);
       const url = await uploadService.uploadImage(file);
-      
+
       // Update form data with server URL
       setFormData({ ...formData, avatar: url });
-      
+
       // Update preview to server URL
       setAvatarPreview(url);
     } catch (error) {

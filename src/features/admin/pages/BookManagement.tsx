@@ -4,6 +4,7 @@ import { AdminHeader } from '../components/AdminHeader';
 import { Plus, Edit2, Trash2, Search, Filter, Eye, Upload, X, BookOpen } from 'lucide-react';
 import { AdminBook, Author } from '../types';
 import { AuthorSelect } from '../components/AuthorSelect';
+import { CategorySelect } from '../components/CategorySelect';
 import { booksService, categoriesService, uploadService } from '@/services';
 import type { Book as ApiBook, Category } from '@/types/api.types';
 
@@ -34,6 +35,10 @@ export const BookManagement = () => {
   const [editingBook, setEditingBook] = useState<AdminBook | null>(null);
   const [filterStatus, setFilterStatus] = useState<string>('all');
   const [operationLoading, setOperationLoading] = useState(false);
+  const [showCategoryModal, setShowCategoryModal] = useState(false);
+  const [newCategoryName, setNewCategoryName] = useState('');
+  const [newCategoryDescription, setNewCategoryDescription] = useState('');
+  const [categoryLoading, setCategoryLoading] = useState(false);
 
   // Fetch books and categories on mount
   useEffect(() => {
@@ -56,10 +61,17 @@ export const BookManagement = () => {
     try {
       setLoading(true);
       setError(null);
+      console.log('📚 Fetching books from API...');
       const apiBooks = await booksService.getAll();
+      console.log('✅ API Books received:', apiBooks);
+      console.log('📊 Number of books:', apiBooks.length);
+
       // Empty array is valid response, not an error
       const mappedBooks = apiBooks.map(mapApiBookToAdminBook);
+      console.log('🔄 Mapped books:', mappedBooks);
+
       setBooks(mappedBooks);
+      console.log('💾 Books state updated');
     } catch (err) {
       console.error('Error fetching books:', err);
       setError('Không thể tải danh sách sách. Vui lòng thử lại.');
@@ -88,6 +100,36 @@ export const BookManagement = () => {
       alert('Không thể xóa sách. Vui lòng thử lại.');
     } finally {
       setOperationLoading(false);
+    }
+  };
+
+  const handleCreateCategory = async () => {
+    if (!newCategoryName.trim()) {
+      alert('Vui lòng nhập tên danh mục');
+      return;
+    }
+
+    try {
+      setCategoryLoading(true);
+      await categoriesService.create({
+        name: newCategoryName.trim(),
+        description: newCategoryDescription.trim(),
+      });
+
+      // Refresh categories list
+      await fetchCategories();
+
+      // Close modal and reset form
+      setShowCategoryModal(false);
+      setNewCategoryName('');
+      setNewCategoryDescription('');
+
+      alert('Thêm danh mục thành công!');
+    } catch (err) {
+      console.error('Error creating category:', err);
+      alert('Không thể thêm danh mục. Vui lòng thử lại.');
+    } finally {
+      setCategoryLoading(false);
     }
   };
 
@@ -314,8 +356,29 @@ export const BookManagement = () => {
           onClose={() => { setShowModal(false); setEditingBook(null); }}
           onSave={handleSave}
           onAddAuthor={handleAddAuthor}
+          onAddCategory={() => setShowCategoryModal(true)}
         />
       )}
+
+      {/* Category Modal */}
+      <CategoryModal
+        isOpen={showCategoryModal}
+        onClose={() => {
+          console.log('🚪 Closing category modal');
+          setShowCategoryModal(false);
+          setNewCategoryName('');
+          setNewCategoryDescription('');
+        }}
+        onSave={() => {
+          console.log('💾 Saving category');
+          handleCreateCategory();
+        }}
+        loading={categoryLoading}
+        name={newCategoryName}
+        setName={setNewCategoryName}
+        description={newCategoryDescription}
+        setDescription={setNewCategoryDescription}
+      />
     </div>
   );
 };
@@ -326,9 +389,10 @@ interface BookModalProps {
   onClose: () => void;
   onSave: (data: Partial<AdminBook>) => void;
   onAddAuthor: (author: Author) => void;
+  onAddCategory: () => void;
 }
 
-const BookModal = ({ book, categories, onClose, onSave, onAddAuthor }: BookModalProps) => {
+const BookModal = ({ book, categories, onClose, onSave, onAddAuthor, onAddCategory }: BookModalProps) => {
   const [formData, setFormData] = useState({
     title: book?.title || '',
     authorId: book?.authorId || '',
@@ -513,15 +577,29 @@ const BookModal = ({ book, categories, onClose, onSave, onAddAuthor }: BookModal
             </div>
           </div>
 
-          {/* Thể loại - Multi Select */}
+          {/* Danh mục - Multi Select with Search and Add */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              Thể loại <span className="text-red-500">*</span>
+              Danh mục <span className="text-red-500">*</span>
             </label>
             {categories.length === 0 ? (
               <p className="text-sm text-gray-500 italic">Đang tải danh mục...</p>
             ) : (
               <div className="border border-gray-300 rounded-lg p-4">
+                {/* Add Category Button */}
+                <button
+                  type="button"
+                  onClick={() => {
+                    console.log('🔘 Add Category button clicked');
+                    onAddCategory();
+                  }}
+                  className="w-full mb-3 px-4 py-2 border-2 border-dashed border-coral-300 rounded-lg text-coral-600 hover:bg-coral-50 transition-colors flex items-center justify-center space-x-2"
+                >
+                  <Plus className="w-4 h-4" />
+                  <span className="font-medium">Thêm danh mục mới</span>
+                </button>
+
+                {/* Category Buttons */}
                 <div className="flex flex-wrap gap-2">
                   {categories.map(category => (
                     <button
@@ -537,6 +615,7 @@ const BookModal = ({ book, categories, onClose, onSave, onAddAuthor }: BookModal
                     </button>
                   ))}
                 </div>
+
                 {selectedGenres.length > 0 && (
                   <div className="mt-3 pt-3 border-t border-gray-200">
                     <p className="text-sm text-gray-600">
@@ -549,6 +628,9 @@ const BookModal = ({ book, categories, onClose, onSave, onAddAuthor }: BookModal
                   </div>
                 )}
               </div>
+            )}
+            {formData.genre.length === 0 && (
+              <p className="text-xs text-red-500 mt-1">Vui lòng chọn ít nhất một danh mục</p>
             )}
           </div>
 
@@ -581,6 +663,79 @@ const BookModal = ({ book, categories, onClose, onSave, onAddAuthor }: BookModal
             </button>
           </div>
         </form>
+      </div>
+    </div>
+  );
+};
+
+// Category Modal Component
+const CategoryModal = ({ isOpen, onClose, onSave, loading, name, setName, description, setDescription }: {
+  isOpen: boolean;
+  onClose: () => void;
+  onSave: () => void;
+  loading: boolean;
+  name: string;
+  setName: (name: string) => void;
+  description: string;
+  setDescription: (desc: string) => void;
+}) => {
+  if (!isOpen) return null;
+
+  return (
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+      <div className="bg-white rounded-xl w-full max-w-md">
+        <div className="border-b border-gray-200 px-6 py-4 flex items-center justify-between">
+          <h2 className="text-xl font-bold">Thêm danh mục mới</h2>
+          <button onClick={onClose} className="p-2 hover:bg-gray-100 rounded-lg">
+            <X className="w-5 h-5" />
+          </button>
+        </div>
+
+        <div className="p-6 space-y-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Tên danh mục <span className="text-red-500">*</span>
+            </label>
+            <input
+              type="text"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-coral-400"
+              placeholder="Ví dụ: Tiểu thuyết, Trinh thám..."
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Mô tả
+            </label>
+            <textarea
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-coral-400"
+              rows={3}
+              placeholder="Mô tả ngắn về danh mục..."
+            />
+          </div>
+
+          <div className="flex space-x-3 pt-4">
+            <button
+              type="button"
+              onClick={onClose}
+              className="flex-1 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+            >
+              Hủy
+            </button>
+            <button
+              type="button"
+              onClick={onSave}
+              disabled={loading || !name.trim()}
+              className="flex-1 px-4 py-2 bg-coral-500 text-white rounded-lg hover:bg-coral-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {loading ? 'Đang lưu...' : 'Thêm mới'}
+            </button>
+          </div>
+        </div>
       </div>
     </div>
   );

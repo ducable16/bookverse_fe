@@ -6,7 +6,8 @@ import {
   PenTool,
   ChevronLeft,
   Settings,
-  LogOut
+  LogOut,
+  Edit3
 } from 'lucide-react';
 import { cn } from '@/features/shared/utils/cn';
 
@@ -15,6 +16,7 @@ const navItems = [
   { icon: Users, path: '/admin/users', label: 'Quản lý người dùng' },
   { icon: BookOpen, path: '/admin/books', label: 'Quản lý sách' },
   { icon: PenTool, path: '/admin/authors', label: 'Quản lý tác giả' },
+  { icon: Edit3, path: '/admin/editor', label: 'Tiptap Editor' },
 ];
 
 export const AdminSidebar = () => {

@@ -16,6 +16,7 @@ import { Dashboard } from './features/admin/pages/Dashboard';
 import { UserManagement } from './features/admin/pages/UserManagement';
 import { BookManagement } from './features/admin/pages/BookManagement';
 import { AuthorManagement } from './features/admin/pages/AuthorManagement';
+import { EditorDemo } from './features/admin/pages/EditorDemo';
 import { ChapterManagement } from './features/admin/pages/ChapterManagement';
 
 // Auth imports
@@ -84,6 +85,14 @@ function App() {
             element={
               <ProtectedRoute requireAdmin>
                 <AdminLayout><ChapterManagement /></AdminLayout>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/admin/editor"
+            element={
+              <ProtectedRoute requireAdmin>
+                <AdminLayout><EditorDemo /></AdminLayout>
               </ProtectedRoute>
             }
           />
