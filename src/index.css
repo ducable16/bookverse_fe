@@ -59,3 +59,58 @@ html {
 *:focus-visible {
   @apply outline-none ring-2 ring-[#F97068] ring-offset-2;
 }
+
+/* Tiptap Editor Styles */
+.tiptap-editor .ProseMirror {
+  min-height: 300px;
+  outline: none;
+}
+
+.tiptap-editor .ProseMirror p.is-editor-empty:first-child::before {
+  content: attr(data-placeholder);
+  float: left;
+  color: #adb5bd;
+  pointer-events: none;
+  height: 0;
+}
+
+.tiptap-editor .ProseMirror h1 {
+  @apply text-3xl font-bold mb-4 mt-6;
+}
+
+.tiptap-editor .ProseMirror h2 {
+  @apply text-2xl font-bold mb-3 mt-5;
+}
+
+.tiptap-editor .ProseMirror h3 {
+  @apply text-xl font-bold mb-2 mt-4;
+}
+
+.tiptap-editor .ProseMirror ul,
+.tiptap-editor .ProseMirror ol {
+  @apply pl-6 mb-4;
+}
+
+.tiptap-editor .ProseMirror ul {
+  @apply list-disc;
+}
+
+.tiptap-editor .ProseMirror ol {
+  @apply list-decimal;
+}
+
+.tiptap-editor .ProseMirror li {
+  @apply mb-1;
+}
+
+.tiptap-editor .ProseMirror p {
+  @apply mb-3;
+}
+
+.tiptap-editor .ProseMirror strong {
+  @apply font-bold;
+}
+
+.tiptap-editor .ProseMirror em {
+  @apply italic;
+}

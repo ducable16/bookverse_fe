@@ -1,12 +1,11 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { AdminHeader } from '../components/AdminHeader';
-import { Plus, Edit2, Trash2, Search, Filter, Eye, Upload, X } from 'lucide-react';
+import { Plus, Edit2, Trash2, Search, Filter, Eye, Upload, X, BookOpen } from 'lucide-react';
 import { AdminBook, Author } from '../types';
 import { AuthorSelect } from '../components/AuthorSelect';
-import { booksService } from '@/services';
-import type { Book as ApiBook } from '@/types/api.types';
-
-const genres: string[] = ['Romance', 'Mystery', 'Thriller', 'Classic', 'Self-help', 'Fantasy', 'Science Fiction', 'Horror', 'Drama', 'Comedy'];
+import { booksService, categoriesService, uploadService } from '@/services';
+import type { Book as ApiBook, Category } from '@/types/api.types';
 
 // Helper to map API Book to AdminBook
 const mapApiBookToAdminBook = (apiBook: ApiBook): AdminBook => ({
@@ -25,7 +24,9 @@ const mapApiBookToAdminBook = (apiBook: ApiBook): AdminBook => ({
 });
 
 export const BookManagement = () => {
+  const navigate = useNavigate();
   const [books, setBooks] = useState<AdminBook[]>([]);
+  const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
@@ -34,10 +35,22 @@ export const BookManagement = () => {
   const [filterStatus, setFilterStatus] = useState<string>('all');
   const [operationLoading, setOperationLoading] = useState(false);
 
-  // Fetch books on mount
+  // Fetch books and categories on mount
   useEffect(() => {
     fetchBooks();
+    fetchCategories();
   }, []);
+
+  const fetchCategories = async () => {
+    try {
+      console.log('🔍 Fetching categories...');
+      const apiCategories = await categoriesService.getAll();
+      console.log('✅ Categories received:', apiCategories);
+      setCategories(apiCategories);
+    } catch (err) {
+      console.error('❌ Error fetching categories:', err);
+    }
+  };
 
   const fetchBooks = async () => {
     try {
@@ -87,11 +100,22 @@ export const BookManagement = () => {
     try {
       setOperationLoading(true);
 
+      // Convert selected genre IDs to numbers for categoryIds array
+      const categoryIds = bookData.genre && bookData.genre.length > 0
+        ? bookData.genre.map(id => Number(id))
+        : [];
+
+      if (categoryIds.length === 0) {
+        alert('Vui lòng chọn ít nhất một thể loại');
+        setOperationLoading(false);
+        return;
+      }
+
       const apiBookData = {
         title: bookData.title || '',
         description: bookData.description || '',
         authorId: Number(bookData.authorId),
-        categoryId: 1, // Default category, should be selected from UI
+        categoryIds: categoryIds, // Send as array
         publishedYear: new Date().getFullYear(),
         isbn: '',
         coverImage: bookData.coverUrl || '',
@@ -252,14 +276,23 @@ export const BookManagement = () => {
                     <td className="px-6 py-4">
                       <div className="flex items-center justify-end space-x-2">
                         <button
+                          onClick={() => navigate(`/admin/chapters/${book.id}`)}
+                          className="p-2 hover:bg-coral-50 rounded-lg transition-colors"
+                          title="Quản lý chapters"
+                        >
+                          <BookOpen className="w-4 h-4 text-coral-600" />
+                        </button>
+                        <button
                           onClick={() => handleEdit(book)}
                           className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                          title="Chỉnh sửa"
                         >
                           <Edit2 className="w-4 h-4 text-gray-600" />
                         </button>
                         <button
                           onClick={() => handleDelete(book.id)}
                           className="p-2 hover:bg-red-50 rounded-lg transition-colors"
+                          title="Xóa"
                         >
                           <Trash2 className="w-4 h-4 text-red-500" />
                         </button>
@@ -277,6 +310,7 @@ export const BookManagement = () => {
       {showModal && (
         <BookModal
           book={editingBook}
+          categories={categories}
           onClose={() => { setShowModal(false); setEditingBook(null); }}
           onSave={handleSave}
           onAddAuthor={handleAddAuthor}
@@ -288,12 +322,13 @@ export const BookManagement = () => {
 
 interface BookModalProps {
   book: AdminBook | null;
+  categories: Category[];
   onClose: () => void;
   onSave: (data: Partial<AdminBook>) => void;
   onAddAuthor: (author: Author) => void;
 }
 
-const BookModal = ({ book, onClose, onSave, onAddAuthor }: BookModalProps) => {
+const BookModal = ({ book, categories, onClose, onSave, onAddAuthor }: BookModalProps) => {
   const [formData, setFormData] = useState({
     title: book?.title || '',
     authorId: book?.authorId || '',
@@ -305,19 +340,46 @@ const BookModal = ({ book, onClose, onSave, onAddAuthor }: BookModalProps) => {
   });
   const [coverPreview, setCoverPreview] = useState(book?.coverUrl || '');
   const [selectedGenres, setSelectedGenres] = useState<string[]>(book?.genre || []);
+  const [uploading, setUploading] = useState(false);
+  const [uploadError, setUploadError] = useState<string | null>(null);
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (file) {
-      // Trong thực tế, bạn sẽ upload lên server và nhận URL
-      // Ở đây chỉ demo với FileReader để preview
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        const result = reader.result as string;
-        setCoverPreview(result);
-        setFormData({ ...formData, coverUrl: result });
-      };
-      reader.readAsDataURL(file);
+    console.log('📁 File selected:', file);
+    if (!file) return;
+
+    setUploadError(null);
+
+    try {
+      console.log('🔍 Validating file...');
+      // Validate file
+      uploadService.validateImage(file, 5);
+      console.log('✅ Validation passed');
+
+      // Show preview immediately
+      const previewUrl = uploadService.createPreviewUrl(file);
+      setCoverPreview(previewUrl);
+      console.log('👁️ Preview URL created:', previewUrl);
+
+      // Upload to server
+      console.log('📤 Starting upload to server...');
+      setUploading(true);
+      const url = await uploadService.uploadImage(file);
+      console.log('✅ Upload complete! URL:', url);
+
+      // Update form data with server URL
+      setFormData({ ...formData, coverUrl: url });
+      console.log('💾 Form data updated with URL');
+
+      // Update preview to server URL
+      setCoverPreview(url);
+    } catch (error) {
+      console.error('❌ Upload error:', error);
+      setUploadError(error instanceof Error ? error.message : 'Không thể tải ảnh lên');
+      setCoverPreview(book?.coverUrl || '');
+    } finally {
+      setUploading(false);
+      console.log('🏁 Upload process finished');
     }
   };
 
@@ -407,7 +469,7 @@ const BookModal = ({ book, onClose, onSave, onAddAuthor }: BookModalProps) => {
             </label>
             <div className="flex items-start space-x-4">
               {/* Preview */}
-              <div className="flex-shrink-0">
+              <div className="flex-shrink-0 relative">
                 {coverPreview ? (
                   <img
                     src={coverPreview}
@@ -417,6 +479,11 @@ const BookModal = ({ book, onClose, onSave, onAddAuthor }: BookModalProps) => {
                 ) : (
                   <div className="w-32 h-48 bg-gray-100 rounded-lg border-2 border-dashed border-gray-300 flex items-center justify-center">
                     <span className="text-gray-400 text-sm">No image</span>
+                  </div>
+                )}
+                {uploading && (
+                  <div className="absolute inset-0 bg-black/50 rounded-lg flex items-center justify-center">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-white"></div>
                   </div>
                 )}
               </div>
@@ -436,8 +503,12 @@ const BookModal = ({ book, onClose, onSave, onAddAuthor }: BookModalProps) => {
                     className="hidden"
                     accept="image/*"
                     onChange={handleFileChange}
+                    disabled={uploading}
                   />
                 </label>
+                {uploadError && (
+                  <p className="text-sm text-red-600 mt-2">{uploadError}</p>
+                )}
               </div>
             </div>
           </div>
@@ -447,30 +518,38 @@ const BookModal = ({ book, onClose, onSave, onAddAuthor }: BookModalProps) => {
             <label className="block text-sm font-medium text-gray-700 mb-2">
               Thể loại <span className="text-red-500">*</span>
             </label>
-            <div className="border border-gray-300 rounded-lg p-4">
-              <div className="flex flex-wrap gap-2">
-                {genres.map(genre => (
-                  <button
-                    key={genre}
-                    type="button"
-                    onClick={() => toggleGenre(genre)}
-                    className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${selectedGenres.includes(genre)
-                      ? 'bg-coral-500 text-white'
-                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                      }`}
-                  >
-                    {genre}
-                  </button>
-                ))}
-              </div>
-              {selectedGenres.length > 0 && (
-                <div className="mt-3 pt-3 border-t border-gray-200">
-                  <p className="text-sm text-gray-600">
-                    Đã chọn: <span className="font-medium">{selectedGenres.join(', ')}</span>
-                  </p>
+            {categories.length === 0 ? (
+              <p className="text-sm text-gray-500 italic">Đang tải danh mục...</p>
+            ) : (
+              <div className="border border-gray-300 rounded-lg p-4">
+                <div className="flex flex-wrap gap-2">
+                  {categories.map(category => (
+                    <button
+                      key={category.id}
+                      type="button"
+                      onClick={() => toggleGenre(String(category.id))}
+                      className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${selectedGenres.includes(String(category.id))
+                        ? 'bg-coral-500 text-white'
+                        : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                        }`}
+                    >
+                      {category.name}
+                    </button>
+                  ))}
                 </div>
-              )}
-            </div>
+                {selectedGenres.length > 0 && (
+                  <div className="mt-3 pt-3 border-t border-gray-200">
+                    <p className="text-sm text-gray-600">
+                      Đã chọn: <span className="font-medium">
+                        {selectedGenres.map(genreId =>
+                          categories.find(c => String(c.id) === genreId)?.name
+                        ).join(', ')}
+                      </span>
+                    </p>
+                  </div>
+                )}
+              </div>
+            )}
           </div>
 
           {/* Mô tả */}
@@ -495,9 +574,10 @@ const BookModal = ({ book, onClose, onSave, onAddAuthor }: BookModalProps) => {
             </button>
             <button
               type="submit"
-              className="px-6 py-2 bg-coral-500 text-white rounded-lg hover:bg-coral-600 transition-colors font-medium"
+              disabled={uploading}
+              className="px-6 py-2 bg-coral-500 text-white rounded-lg hover:bg-coral-600 transition-colors font-medium disabled:bg-gray-300 disabled:cursor-not-allowed"
             >
-              {book ? 'Cập nhật' : 'Thêm mới'}
+              {uploading ? 'Đang tải...' : (book ? 'Cập nhật' : 'Thêm mới')}
             </button>
           </div>
         </form>

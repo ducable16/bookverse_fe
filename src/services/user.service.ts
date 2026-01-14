@@ -10,18 +10,18 @@ import type {
 export const userService = {
     // Get user by ID
     getById: async (id: number): Promise<User> => {
-        const response = await apiClient.get<ApiResponse<User>>(
+        const response: ApiResponse<User> = await apiClient.get(
             API_ENDPOINTS.USERS.BY_ID(id)
         );
-        return response.data.data;
+        return response.data;
     },
 
     // Update user
     update: async (id: number, userData: UserUpdateRequest): Promise<UserResponse> => {
-        const response = await apiClient.post<ApiResponse<UserResponse>>(
+        const response: ApiResponse<UserResponse> = await apiClient.post(
             API_ENDPOINTS.USERS.BY_ID(id),
             userData
         );
-        return response.data.data;
+        return response.data;
     },
 };

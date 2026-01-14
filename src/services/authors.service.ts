@@ -15,38 +15,38 @@ import type {
 export const authorsService = {
     // Get all authors
     getAll: async (): Promise<Author[]> => {
-        const response = await apiClient.get<ApiResponse<Author[]>>(
+        const response: ApiResponse<Author[]> = await apiClient.get(
             API_ENDPOINTS.AUTHORS.LIST
         );
         console.log('Authors API Response:', response);
         console.log('Authors Data:', response.data);
-        return response.data.data || [];
+        return response.data || [];
     },
 
     // Get author by ID
     getById: async (id: number): Promise<Author> => {
-        const response = await apiClient.get<ApiResponse<Author>>(
+        const response: ApiResponse<Author> = await apiClient.get(
             API_ENDPOINTS.AUTHORS.DETAIL(id)
         );
-        return response.data.data;
+        return response.data;
     },
 
     // Create author
     create: async (authorData: CreateAuthorRequest): Promise<Author> => {
-        const response = await apiClient.post<ApiResponse<Author>>(
+        const response: ApiResponse<Author> = await apiClient.post(
             API_ENDPOINTS.AUTHORS.CREATE,
             authorData
         );
-        return response.data.data;
+        return response.data;
     },
 
     // Update author
     update: async (id: number, authorData: UpdateAuthorRequest): Promise<Author> => {
-        const response = await apiClient.post<ApiResponse<Author>>(
+        const response: ApiResponse<Author> = await apiClient.post(
             API_ENDPOINTS.AUTHORS.UPDATE(id),
             authorData
         );
-        return response.data.data;
+        return response.data;
     },
 
     // Delete author

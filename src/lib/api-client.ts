@@ -34,10 +34,11 @@ apiClient.interceptors.request.use(
 // Response interceptor - Handle errors and transform responses
 apiClient.interceptors.response.use(
     (response) => {
-        // Return the data directly
+        // Server returns { code, message, data }
+        // Unwrap the response automatically so services just get the ApiResponse<T>
         return response.data;
     },
-    async (error: AxiosError<ApiError>) => {
+    async (error: AxiosError<any>) => {
         // Handle different error scenarios
         if (error.response) {
             const { status, data } = error.response;
@@ -96,11 +97,17 @@ apiClient.interceptors.response.use(
 );
 
 // Helper function to handle API responses
+// Server response structure: { code: number, message: string, data: T }
 export const handleApiResponse = <T>(response: ApiResponse<T>): T => {
-    if (response.success) {
+    // Success codes are typically 200-299 or specific success codes like 1000
+    if (response.code >= 200 && response.code < 300) {
         return response.data;
     }
-    throw new Error(response.error || response.message || 'API request failed');
+    // Some APIs use custom success codes like 1000
+    if (response.code === 1000) {
+        return response.data;
+    }
+    throw new Error(response.message || 'API request failed');
 };
 
 export default apiClient;

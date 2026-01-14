@@ -71,6 +71,8 @@ export const API_ENDPOINTS = {
         DELETE: (chapterId: string | number) => `/chapters/delete/${chapterId}`,
     },
 
+    // Upload endpoint
+    UPLOAD: '/upload',
     // Admin endpoints
     ADMIN: {
         DASHBOARD: '/admin/dashboard',

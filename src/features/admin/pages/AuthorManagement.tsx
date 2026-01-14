@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { AdminHeader } from '../components/AdminHeader';
 import { Plus, Edit2, Trash2, Search, BookOpen, Upload, X, Eye } from 'lucide-react';
 import { Author } from '../types';
-import { authorsService, booksService } from '@/services';
+import { authorsService, booksService, uploadService } from '@/services';
 import type { Author as ApiAuthor, Book as ApiBook } from '@/types/api.types';
 
 // Helper to map API Author to local Author type
@@ -34,12 +34,26 @@ export const AuthorManagement = () => {
     try {
       setLoading(true);
       setError(null);
+      
+      console.log('🔍 Fetching authors from API...');
       const apiAuthors = await authorsService.getAll();
-      // Empty array is valid response, not an error
+      
+      console.log('✅ API Response received:', apiAuthors);
+      console.log('📊 Type:', Array.isArray(apiAuthors) ? 'Array' : typeof apiAuthors);
+      console.log('📏 Length:', Array.isArray(apiAuthors) ? apiAuthors.length : 'N/A');
+      
+      if (!Array.isArray(apiAuthors)) {
+        console.error('❌ API response is not an array:', apiAuthors);
+        throw new Error('Invalid API response format');
+      }
+      
       const mappedAuthors = apiAuthors.map(mapApiAuthorToLocal);
+      console.log('🔄 Mapped authors:', mappedAuthors);
+      
       setAuthors(mappedAuthors);
+      console.log('✨ Authors state updated with', mappedAuthors.length, 'items');
     } catch (err) {
-      console.error('Error fetching authors:', err);
+      console.error('❌ Error fetching authors:', err);
       setError('Không thể tải danh sách tác giả. Vui lòng thử lại.');
     } finally {
       setLoading(false);
@@ -78,6 +92,7 @@ export const AuthorManagement = () => {
       const apiAuthorData = {
         name: authorData.name || '',
         biography: authorData.bio || '',
+        avatarUrl: authorData.avatar || '', // Map avatar to avatarUrl for API
       };
 
       if (editingAuthor) {
@@ -263,23 +278,38 @@ const AuthorModal = ({ author, onClose, onSave }: AuthorModalProps) => {
     avatar: author?.avatar || '',
   });
   const [avatarPreview, setAvatarPreview] = useState(author?.avatar || '');
+  const [uploading, setUploading] = useState(false);
+  const [uploadError, setUploadError] = useState<string | null>(null);
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (file) {
-      // Validate file size (5MB)
-      if (file.size > 5 * 1024 * 1024) {
-        alert('File quá lớn! Vui lòng chọn file nhỏ hơn 5MB');
-        return;
-      }
+    if (!file) return;
 
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        const result = reader.result as string;
-        setAvatarPreview(result);
-        setFormData({ ...formData, avatar: result });
-      };
-      reader.readAsDataURL(file);
+    setUploadError(null);
+
+    try {
+      // Validate file
+      uploadService.validateImage(file, 5);
+
+      // Show preview immediately
+      const previewUrl = uploadService.createPreviewUrl(file);
+      setAvatarPreview(previewUrl);
+
+      // Upload to server
+      setUploading(true);
+      const url = await uploadService.uploadImage(file);
+      
+      // Update form data with server URL
+      setFormData({ ...formData, avatar: url });
+      
+      // Update preview to server URL
+      setAvatarPreview(url);
+    } catch (error) {
+      console.error('Upload error:', error);
+      setUploadError(error instanceof Error ? error.message : 'Không thể tải ảnh lên');
+      setAvatarPreview(author?.avatar || '');
+    } finally {
+      setUploading(false);
     }
   };
 
@@ -321,7 +351,7 @@ const AuthorModal = ({ author, onClose, onSave }: AuthorModalProps) => {
             </label>
             <div className="flex items-start space-x-4">
               {/* Preview */}
-              <div className="flex-shrink-0">
+              <div className="flex-shrink-0 relative">
                 {avatarPreview ? (
                   <img
                     src={avatarPreview}
@@ -331,6 +361,11 @@ const AuthorModal = ({ author, onClose, onSave }: AuthorModalProps) => {
                 ) : (
                   <div className="w-24 h-24 bg-gray-100 rounded-full border-2 border-dashed border-gray-300 flex items-center justify-center">
                     <span className="text-gray-400 text-xs">No image</span>
+                  </div>
+                )}
+                {uploading && (
+                  <div className="absolute inset-0 bg-black/50 rounded-full flex items-center justify-center">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-white"></div>
                   </div>
                 )}
               </div>
@@ -349,9 +384,13 @@ const AuthorModal = ({ author, onClose, onSave }: AuthorModalProps) => {
                   className="hidden"
                   accept="image/*"
                   onChange={handleFileChange}
+                  disabled={uploading}
                 />
               </label>
             </div>
+            {uploadError && (
+              <p className="text-sm text-red-600 mt-2">{uploadError}</p>
+            )}
           </div>
 
           <div>
@@ -374,9 +413,10 @@ const AuthorModal = ({ author, onClose, onSave }: AuthorModalProps) => {
             </button>
             <button
               type="submit"
-              className="px-4 py-2 bg-coral-500 text-white rounded-lg hover:bg-coral-600 transition-colors"
+              disabled={uploading}
+              className="px-4 py-2 bg-coral-500 text-white rounded-lg hover:bg-coral-600 transition-colors disabled:bg-gray-300 disabled:cursor-not-allowed"
             >
-              {author ? 'Cập nhật' : 'Thêm mới'}
+              {uploading ? 'Đang tải...' : (author ? 'Cập nhật' : 'Thêm mới')}
             </button>
           </div>
         </form>

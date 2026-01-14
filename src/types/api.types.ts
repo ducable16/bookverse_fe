@@ -263,6 +263,11 @@ export interface UpdateProgressRequest {
     progress: number;
 }
 
+// Upload Types
+export interface UploadResponse {
+    url: string;
+}
+
 // Chapter Types
 export interface ChapterResponse {
     id: number;

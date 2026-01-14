@@ -10,4 +10,5 @@ export { categoriesService } from './categories.service';
 export { chaptersService } from './chapters.service';
 export { commentsService } from './comments.service';
 export { readingService } from './reading.service';
+export { uploadService } from './upload.service';
 export { userService } from './user.service';

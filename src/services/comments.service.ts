@@ -15,10 +15,10 @@ import type {
 export const commentsService = {
     // Get comments by book
     getByBook: async (bookId: number): Promise<Comment[]> => {
-        const response = await apiClient.get<ApiResponse<Comment[]>>(
+        const response: ApiResponse<Comment[]> = await apiClient.get(
             API_ENDPOINTS.BOOKS.COMMENTS(bookId)
         );
-        return response.data.data;
+        return response.data;
     },
 
     // Create comment
