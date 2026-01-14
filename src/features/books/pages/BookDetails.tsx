@@ -2,15 +2,16 @@ import { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { ChevronLeft, BookOpen, Bookmark, Heart, Share2 } from 'lucide-react';
 import { StarRating } from '../components/StarRating';
-import { booksService, commentsService } from '@/services';
-import type { Book as ApiBook, Review } from '@/types/api.types';
+import { booksService, commentsService, chaptersService } from '@/services';
+import type { Book as ApiBook, Comment, ChapterResponse } from '@/types/api.types';
 
 export const BookDetails = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
 
   const [book, setBook] = useState<ApiBook | null>(null);
-  const [comments, setComments] = useState<Review[]>([]);
+  const [comments, setComments] = useState<Comment[]>([]);
+  const [chapters, setChapters] = useState<ChapterResponse[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -24,12 +25,16 @@ export const BookDetails = () => {
 
         // Fetch book details and comments in parallel
         const [bookData, commentsData] = await Promise.all([
-          booksService.getBookById(id),
-          commentsService.getBookReviews(id).catch(() => []), // Fallback to empty if comments fail
+          booksService.getById(Number(id)),
+          commentsService.getByBook(Number(id)).catch(() => []), // Fallback to empty if comments fail
         ]);
 
         setBook(bookData);
         setComments(commentsData);
+
+        // Fetch chapters
+        const chaptersData = await chaptersService.getByBook(Number(id)).catch(() => []);
+        setChapters(chaptersData);
       } catch (err) {
         console.error('Error fetching book details:', err);
         setError('Không thể tải thông tin sách');
@@ -93,32 +98,21 @@ export const BookDetails = () => {
 
         {/* Details */}
         <div className="flex-1 max-w-2xl">
-          <h1 className="text-2xl font-bold text-gray-900 mb-2">{book.title}</h1>
-
-          <div className="flex items-center space-x-2 mb-6">
-            <span className="text-lg font-medium">{book.rating}</span>
-            <StarRating rating={book.rating} />
-            <span className="text-gray-500">•</span>
-            <span className="text-gray-600">{book.totalReviews} Review</span>
-          </div>
+          <h1 className="text-2xl font-bold text-gray-900 mb-6">{book.title}</h1>
 
           {/* Meta Info */}
-          <div className="grid grid-cols-4 gap-6 py-4 border-b border-gray-200 mb-6">
+          <div className="grid grid-cols-3 gap-6 py-4 border-b border-gray-200 mb-6">
             <div>
-              <div className="text-sm text-gray-500 mb-1">Author</div>
-              <div className="font-medium text-gray-900">{book.author.name}</div>
+              <div className="text-sm text-gray-500 mb-1">Tác giả</div>
+              <div className="font-medium text-gray-900">{book.authorName}</div>
             </div>
             <div>
-              <div className="text-sm text-gray-500 mb-1">Genre</div>
-              <div className="font-medium text-gray-900">{book.genre.join(', ')}</div>
+              <div className="text-sm text-gray-500 mb-1">Thể loại</div>
+              <div className="font-medium text-gray-900">{book.categoryName}</div>
             </div>
             <div>
-              <div className="text-sm text-gray-500 mb-1">Pages</div>
-              <div className="font-medium text-gray-900">{book.totalPages}</div>
-            </div>
-            <div>
-              <div className="text-sm text-gray-500 mb-1">Published</div>
-              <div className="font-medium text-gray-900">{new Date(book.publishedDate).getFullYear()}</div>
+              <div className="text-sm text-gray-500 mb-1">Năm xuất bản</div>
+              <div className="font-medium text-gray-900">{book.publishedYear}</div>
             </div>
           </div>
 
@@ -129,7 +123,7 @@ export const BookDetails = () => {
               className="flex items-center space-x-2 bg-accent-teal hover:bg-teal-600 text-white font-medium px-8 py-3 rounded-full transition-colors"
             >
               <BookOpen className="w-5 h-5" />
-              <span>Reading</span>
+              <span>Đọc sách</span>
             </Link>
             <button className="p-3 hover:bg-cream-300 rounded-full transition-colors">
               <Bookmark className="w-6 h-6 text-gray-700" />
@@ -147,9 +141,35 @@ export const BookDetails = () => {
             {book.description}
           </div>
           <button className="text-accent-teal hover:underline text-sm">
-            ...View more
+            ...Xem thêm
           </button>
         </div>
+      </div>
+
+      {/* Chapters Section */}
+      <div className="mt-10">
+        <h2 className="text-lg font-bold mb-4">Danh sách chương ({chapters.length})</h2>
+
+        {chapters.length === 0 ? (
+          <div className="bg-cream-100 rounded-xl p-6 text-center text-gray-500">
+            Chưa có chương nào
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {chapters.map(chapter => (
+              <Link
+                key={chapter.id}
+                to={`/read/${book.id}?chapter=${chapter.chapterNumber}`}
+                className="bg-cream-100 hover:bg-cream-200 rounded-xl p-4 transition-colors"
+              >
+                <div className="font-semibold text-gray-900 mb-1">
+                  Chương {chapter.chapterNumber}
+                </div>
+                <div className="text-gray-700 line-clamp-1">{chapter.title}</div>
+              </Link>
+            ))}
+          </div>
+        )}
       </div>
 
       {/* Comments Section */}
@@ -166,21 +186,16 @@ export const BookDetails = () => {
               <div key={comment.id} className="bg-cream-100 rounded-xl p-6">
                 <div className="flex items-start justify-between">
                   <div className="flex items-center space-x-3">
-                    <img
-                      src={comment.user.avatar || 'https://via.placeholder.com/40'}
-                      alt={comment.user.username}
-                      className="w-10 h-10 rounded-full object-cover"
-                    />
+                    <div className="w-10 h-10 rounded-full bg-accent-teal flex items-center justify-center text-white font-semibold">
+                      {comment.username.charAt(0).toUpperCase()}
+                    </div>
                     <div>
-                      <div className="font-semibold text-gray-900">{comment.user.username}</div>
-                      <div className="flex items-center space-x-1 mb-1">
-                        <StarRating rating={comment.rating} />
-                      </div>
-                      <div className="text-gray-700 mt-1">{comment.comment}</div>
+                      <div className="font-semibold text-gray-900">{comment.username}</div>
+                      <div className="text-gray-700 mt-1">{comment.content}</div>
                     </div>
                   </div>
                   <span className="text-sm text-gray-500">
-                    {new Date(comment.createdAt).toLocaleDateString()}
+                    {new Date(comment.createdAt).toLocaleDateString('vi-VN')}
                   </span>
                 </div>
               </div>
