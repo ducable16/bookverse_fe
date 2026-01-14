@@ -1,48 +1,81 @@
-import { Search, Bell } from 'lucide-react';
-import { useState } from 'react';
+import { Link } from 'react-router-dom';
+import { BookOpen, User, LogOut, Shield } from 'lucide-react';
+import { useAuth } from '@/contexts/AuthContext';
 
 export const Header = () => {
-  const [searchQuery, setSearchQuery] = useState('');
+  const { isAuthenticated, isAdmin, user, logout } = useAuth();
 
   return (
-    <header className="sticky top-0 z-30 bg-cream-200/95 backdrop-blur supports-[backdrop-filter]:bg-cream-200/80">
-      <div className="flex items-center justify-between h-16 px-8">
-        {/* Search Bar */}
-        <div className="flex items-center flex-1 max-w-xl">
-          <div className="relative w-full">
-            <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
-            <input 
-              type="text"
-              placeholder="Search book, name, author..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-12 pr-4 py-2.5 bg-transparent border-none text-gray-700 placeholder-gray-400 focus:outline-none text-sm"
-            />
+    <header className="bg-white shadow-sm sticky top-0 z-50">
+      <div className="container mx-auto px-4 py-4">
+        <div className="flex items-center justify-between">
+          {/* Logo */}
+          <Link to="/" className="flex items-center space-x-2 text-2xl font-bold text-coral-600">
+            <BookOpen className="w-8 h-8" />
+            <span>BookVerse</span>
+          </Link>
+
+          {/* Navigation */}
+          <nav className="hidden md:flex items-center space-x-8">
+            <Link to="/" className="text-gray-700 hover:text-coral-600 transition-colors">
+              Trang chủ
+            </Link>
+            <Link to="/categories" className="text-gray-700 hover:text-coral-600 transition-colors">
+              Thể loại
+            </Link>
+            <Link to="/library" className="text-gray-700 hover:text-coral-600 transition-colors">
+              Thư viện
+            </Link>
+            <Link to="/discover" className="text-gray-700 hover:text-coral-600 transition-colors">
+              Khám phá
+            </Link>
+          </nav>
+
+          {/* Auth Section */}
+          <div className="flex items-center space-x-4">
+            {!isAuthenticated ? (
+              <>
+                <Link
+                  to="/login"
+                  className="text-gray-700 hover:text-coral-600 transition-colors font-medium"
+                >
+                  Đăng nhập
+                </Link>
+                <Link
+                  to="/register"
+                  className="bg-coral-500 text-white px-4 py-2 rounded-lg hover:bg-coral-600 transition-colors font-medium"
+                >
+                  Đăng ký
+                </Link>
+              </>
+            ) : (
+              <>
+                <div className="flex items-center space-x-2 text-gray-700">
+                  <User className="w-5 h-5" />
+                  <span className="font-medium">{user?.username}</span>
+                </div>
+
+                {isAdmin && (
+                  <Link
+                    to="/admin"
+                    className="flex items-center space-x-1 text-coral-600 hover:text-coral-700 transition-colors font-medium"
+                  >
+                    <Shield className="w-5 h-5" />
+                    <span>Quản trị</span>
+                  </Link>
+                )}
+
+                <button
+                  onClick={logout}
+                  className="flex items-center space-x-1 text-gray-700 hover:text-red-600 transition-colors"
+                  title="Đăng xuất"
+                >
+                  <LogOut className="w-5 h-5" />
+                  <span className="hidden lg:inline">Đăng xuất</span>
+                </button>
+              </>
+            )}
           </div>
-        </div>
-
-        {/* Right Actions */}
-        <div className="flex items-center space-x-4">
-          {/* Language Selector */}
-          <button className="flex items-center space-x-2 px-4 py-2 rounded-full border border-gray-300 bg-white hover:bg-gray-50 transition-colors">
-            <span className="text-sm font-medium">VN</span>
-            <span className="text-lg">🇻🇳</span>
-          </button>
-
-          {/* User Profile */}
-          <div className="flex items-center space-x-3">
-            <img 
-              src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&h=100&fit=crop&crop=face"
-              alt="User"
-              className="w-10 h-10 rounded-full object-cover border-2 border-white shadow-sm"
-            />
-            <span className="font-medium text-gray-800">Harleen Quinzel</span>
-          </div>
-
-          {/* Notifications */}
-          <button className="p-2 hover:bg-cream-300 rounded-full transition-colors relative">
-            <Bell className="w-6 h-6 text-gray-600" />
-          </button>
         </div>
       </div>
     </header>

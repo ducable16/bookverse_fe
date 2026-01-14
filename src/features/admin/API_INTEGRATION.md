@@ -192,7 +192,7 @@ Component đã có sẵn error handling cơ bản. Bạn có thể mở rộng:
 Nếu API cần authentication:
 
 ```typescript
-const token = localStorage.getItem('authToken');
+const token = localStorage.getItem('token');
 
 const response = await fetch(url, {
   headers: {

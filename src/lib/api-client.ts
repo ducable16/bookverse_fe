@@ -18,7 +18,7 @@ const apiClient: AxiosInstance = axios.create({
 apiClient.interceptors.request.use(
     (config: InternalAxiosRequestConfig) => {
         // Get token from localStorage
-        const token = localStorage.getItem('authToken');
+        const token = localStorage.getItem('token');
 
         if (token && config.headers) {
             config.headers.Authorization = `Bearer ${token}`;
@@ -45,7 +45,7 @@ apiClient.interceptors.response.use(
             switch (status) {
                 case 401:
                     // Unauthorized - clear token and redirect to login
-                    localStorage.removeItem('authToken');
+                    localStorage.removeItem('token');
                     localStorage.removeItem('user');
 
                     // Only redirect if not already on login page

@@ -9,7 +9,6 @@ import type {
     LoginRequest,
     LoginResponse,
     RegisterRequest,
-    User,
     ApiResponse
 } from '../types/api.types';
 
@@ -20,15 +19,17 @@ export const authService = {
             API_ENDPOINTS.AUTH.LOGIN,
             credentials
         );
-        return response.data.data;
+        // apiClient interceptor returns response.data which is {code, message, data}
+        // response.data contains the actual LoginResponse {token, username, email, role}
+        return (response as any).data;
     },
 
     // Register
-    register: async (userData: RegisterRequest): Promise<User> => {
-        const response = await apiClient.post<ApiResponse<User>>(
+    register: async (userData: RegisterRequest): Promise<void> => {
+        await apiClient.post<ApiResponse<{ message: string }>>(
             API_ENDPOINTS.AUTH.REGISTER,
             userData
         );
-        return response.data.data;
+        // API only returns success message, doesn't auto-login
     },
 };
