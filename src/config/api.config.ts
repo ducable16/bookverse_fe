@@ -17,7 +17,7 @@ export const API_ENDPOINTS = {
     // Auth endpoints
     AUTH: {
         LOGIN: '/auth/login',
-        REGISTER: '/users/register',
+        REGISTER: '/auth/register',
     },
 
     // Books endpoints
@@ -60,6 +60,15 @@ export const API_ENDPOINTS = {
     USERS: {
         REGISTER: '/users/register',
         BY_ID: (id: string | number) => `/users/${id}`,
+    },
+
+    // Chapters endpoints
+    CHAPTERS: {
+        BY_BOOK: (bookId: string | number) => `/books/${bookId}/chapters`,
+        DETAIL: (chapterId: string | number) => `/chapters/${chapterId}`,
+        CREATE: '/chapters/create',
+        UPDATE: (chapterId: string | number) => `/chapters/update/${chapterId}`,
+        DELETE: (chapterId: string | number) => `/chapters/delete/${chapterId}`,
     },
 };
 

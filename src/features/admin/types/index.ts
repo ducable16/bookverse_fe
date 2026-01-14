@@ -25,11 +25,7 @@ export interface AdminBook {
   authorName: string;
   coverUrl: string;
   description: string;
-<<<<<<< HEAD
   genre: string[];
-=======
-  genre: string;
->>>>>>> 6cd3856ed10f6540887912c908fca38fdea82d1b
   status: 'published' | 'draft' | 'archived';
   totalChapters: number;
   views: number;
