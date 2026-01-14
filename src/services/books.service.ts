@@ -19,7 +19,9 @@ export const booksService = {
         const response = await apiClient.get<ApiResponse<Book[]>>(
             API_ENDPOINTS.BOOKS.LIST
         );
-        return response.data.data;
+        console.log('Books API Response:', response);
+        console.log('Books Data:', response.data);
+        return response.data.data || [];
     },
 
     // Get book by ID

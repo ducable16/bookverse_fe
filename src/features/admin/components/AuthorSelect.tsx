@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { Search, Plus, X, Check, Upload } from 'lucide-react';
 import { Author } from '../types';
+import { authorsService } from '@/services';
 
 interface AuthorSelectProps {
   value: string;
@@ -12,6 +13,7 @@ export const AuthorSelect = ({ value, onChange, onAddAuthor }: AuthorSelectProps
   const [isOpen, setIsOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [authors, setAuthors] = useState<Author[]>([]);
+  const [allAuthors, setAllAuthors] = useState<Author[]>([]);
   const [loading, setLoading] = useState(false);
   const [showAddModal, setShowAddModal] = useState(false);
   const [selectedAuthor, setSelectedAuthor] = useState<Author | null>(null);
@@ -28,35 +30,49 @@ export const AuthorSelect = ({ value, onChange, onAddAuthor }: AuthorSelectProps
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  // Fetch authors (simulate API call)
+  // Fetch all authors on mount
   useEffect(() => {
-    const fetchAuthors = async () => {
-      setLoading(true);
-      // Simulate API call
-      setTimeout(() => {
-        // Import mockAuthors từ mockData
-        import('../data/mockData').then(({ mockAuthors }) => {
-          const filtered = mockAuthors.filter(author =>
-            author.name.toLowerCase().includes(searchQuery.toLowerCase())
-          );
-          setAuthors(filtered);
-          setLoading(false);
-        });
-      }, 300);
+    const fetchAllAuthors = async () => {
+      try {
+        setLoading(true);
+        const fetchedAuthors = await authorsService.getAll();
+        // Map API authors to local Author type
+        const mappedAuthors: Author[] = fetchedAuthors.map(a => ({
+          id: String(a.id),
+          name: a.name,
+          bio: a.biography || '',
+          booksCount: 0, // API doesn't provide this
+          createdAt: new Date().toISOString().split('T')[0],
+        }));
+        setAllAuthors(mappedAuthors);
+        setAuthors(mappedAuthors);
+      } catch (error) {
+        console.error('Error fetching authors:', error);
+        setAllAuthors([]);
+        setAuthors([]);
+      } finally {
+        setLoading(false);
+      }
     };
 
-    fetchAuthors();
-  }, [searchQuery]);
+    fetchAllAuthors();
+  }, []);
+
+  // Filter authors based on search query
+  useEffect(() => {
+    const filtered = allAuthors.filter(author =>
+      author.name.toLowerCase().includes(searchQuery.toLowerCase())
+    );
+    setAuthors(filtered);
+  }, [searchQuery, allAuthors]);
 
   // Get selected author info
   useEffect(() => {
     if (value) {
-      import('../data/mockData').then(({ mockAuthors }) => {
-        const author = mockAuthors.find(a => a.id === value);
-        setSelectedAuthor(author || null);
-      });
+      const author = allAuthors.find(a => a.id === value);
+      setSelectedAuthor(author || null);
     }
-  }, [value]);
+  }, [value, allAuthors]);
 
   const handleSelect = (author: Author) => {
     onChange(author.id, author.name);
@@ -286,9 +302,9 @@ const AddAuthorModal = ({ defaultName, onClose, onSave }: AddAuthorModalProps) =
               {/* Preview */}
               <div className="flex-shrink-0">
                 {avatarPreview || formData.avatar ? (
-                  <img 
-                    src={avatarPreview || formData.avatar} 
-                    alt="Preview" 
+                  <img
+                    src={avatarPreview || formData.avatar}
+                    alt="Preview"
                     className="w-20 h-20 object-cover rounded-full border-2 border-gray-200"
                   />
                 ) : (
@@ -297,7 +313,7 @@ const AddAuthorModal = ({ defaultName, onClose, onSave }: AddAuthorModalProps) =
                   </div>
                 )}
               </div>
-              
+
               {/* Upload Button */}
               <label className="flex-1 flex flex-col items-center justify-center h-20 border-2 border-gray-300 border-dashed rounded-lg cursor-pointer bg-gray-50 hover:bg-gray-100 transition-colors">
                 <div className="flex items-center space-x-2">
@@ -305,9 +321,9 @@ const AddAuthorModal = ({ defaultName, onClose, onSave }: AddAuthorModalProps) =
                   <span className="text-sm text-gray-500">Tải lên ảnh</span>
                 </div>
                 <p className="text-xs text-gray-400 mt-1">PNG, JPG (MAX. 5MB)</p>
-                <input 
-                  type="file" 
-                  className="hidden" 
+                <input
+                  type="file"
+                  className="hidden"
                   accept="image/*"
                   onChange={handleFileChange}
                 />

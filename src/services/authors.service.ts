@@ -18,7 +18,9 @@ export const authorsService = {
         const response = await apiClient.get<ApiResponse<Author[]>>(
             API_ENDPOINTS.AUTHORS.LIST
         );
-        return response.data.data;
+        console.log('Authors API Response:', response);
+        console.log('Authors Data:', response.data);
+        return response.data.data || [];
     },
 
     // Get author by ID

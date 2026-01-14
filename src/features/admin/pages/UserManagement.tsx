@@ -1,8 +1,10 @@
 import { useState } from 'react';
 import { AdminHeader } from '../components/AdminHeader';
 import { Plus, Edit2, Trash2, MoreVertical, Search, Filter } from 'lucide-react';
-import { mockAdminUsers } from '../data/mockData';
 import { AdminUser } from '../types';
+
+// TODO: Replace with API calls when backend is ready
+const mockAdminUsers: AdminUser[] = [];
 
 export const UserManagement = () => {
   const [users, setUsers] = useState<AdminUser[]>(mockAdminUsers);
@@ -13,7 +15,7 @@ export const UserManagement = () => {
 
   const filteredUsers = users.filter(user => {
     const matchesSearch = user.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                         user.email.toLowerCase().includes(searchQuery.toLowerCase());
+      user.email.toLowerCase().includes(searchQuery.toLowerCase());
     const matchesRole = filterRole === 'all' || user.role === filterRole;
     return matchesSearch && matchesRole;
   });
@@ -49,8 +51,8 @@ export const UserManagement = () => {
 
   return (
     <div>
-      <AdminHeader 
-        title="Quản lý người dùng" 
+      <AdminHeader
+        title="Quản lý người dùng"
         subtitle={`Tổng cộng ${users.length} người dùng`}
       />
 
@@ -60,7 +62,7 @@ export const UserManagement = () => {
           <div className="flex items-center space-x-4">
             <div className="relative">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
-              <input 
+              <input
                 type="text"
                 placeholder="Tìm kiếm người dùng..."
                 value={searchQuery}
@@ -70,7 +72,7 @@ export const UserManagement = () => {
             </div>
             <div className="relative">
               <Filter className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
-              <select 
+              <select
                 value={filterRole}
                 onChange={(e) => setFilterRole(e.target.value)}
                 className="pl-10 pr-8 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-coral-400 appearance-none bg-white"
@@ -82,7 +84,7 @@ export const UserManagement = () => {
               </select>
             </div>
           </div>
-          <button 
+          <button
             onClick={() => { setEditingUser(null); setShowModal(true); }}
             className="flex items-center space-x-2 bg-coral-500 hover:bg-coral-600 text-white px-4 py-2 rounded-lg transition-colors"
           >
@@ -122,40 +124,38 @@ export const UserManagement = () => {
                   </td>
                   <td className="px-6 py-4 text-gray-600">{user.email}</td>
                   <td className="px-6 py-4">
-                    <span className={`px-3 py-1 text-xs font-medium rounded-full ${
-                      user.role === 'admin' 
-                        ? 'bg-purple-100 text-purple-700' 
+                    <span className={`px-3 py-1 text-xs font-medium rounded-full ${user.role === 'admin'
+                        ? 'bg-purple-100 text-purple-700'
                         : user.role === 'manager'
-                        ? 'bg-blue-100 text-blue-700'
-                        : 'bg-gray-100 text-gray-700'
-                    }`}>
-                      {user.role === 'admin' ? 'Admin' : 
-                       user.role === 'manager' ? 'Manager' : 'User'}
+                          ? 'bg-blue-100 text-blue-700'
+                          : 'bg-gray-100 text-gray-700'
+                      }`}>
+                      {user.role === 'admin' ? 'Admin' :
+                        user.role === 'manager' ? 'Manager' : 'User'}
                     </span>
                   </td>
                   <td className="px-6 py-4">
-                    <span className={`px-3 py-1 text-xs font-medium rounded-full ${
-                      user.status === 'active' 
-                        ? 'bg-green-100 text-green-700' 
+                    <span className={`px-3 py-1 text-xs font-medium rounded-full ${user.status === 'active'
+                        ? 'bg-green-100 text-green-700'
                         : user.status === 'inactive'
-                        ? 'bg-yellow-100 text-yellow-700'
-                        : 'bg-red-100 text-red-700'
-                    }`}>
-                      {user.status === 'active' ? 'Hoạt động' : 
-                       user.status === 'inactive' ? 'Không hoạt động' : 'Đã cấm'}
+                          ? 'bg-yellow-100 text-yellow-700'
+                          : 'bg-red-100 text-red-700'
+                      }`}>
+                      {user.status === 'active' ? 'Hoạt động' :
+                        user.status === 'inactive' ? 'Không hoạt động' : 'Đã cấm'}
                     </span>
                   </td>
                   <td className="px-6 py-4 text-gray-600">{user.createdAt}</td>
                   <td className="px-6 py-4 text-gray-600">{user.lastLogin || '-'}</td>
                   <td className="px-6 py-4">
                     <div className="flex items-center justify-end space-x-2">
-                      <button 
+                      <button
                         onClick={() => handleEdit(user)}
                         className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
                       >
                         <Edit2 className="w-4 h-4 text-gray-600" />
                       </button>
-                      <button 
+                      <button
                         onClick={() => handleDelete(user.id)}
                         className="p-2 hover:bg-red-50 rounded-lg transition-colors"
                       >
@@ -172,7 +172,7 @@ export const UserManagement = () => {
 
       {/* Modal */}
       {showModal && (
-        <UserModal 
+        <UserModal
           user={editingUser}
           onClose={() => { setShowModal(false); setEditingUser(null); }}
           onSave={handleSave}
@@ -207,11 +207,11 @@ const UserModal = ({ user, onClose, onSave }: UserModalProps) => {
         <h2 className="text-xl font-bold mb-6">
           {user ? 'Chỉnh sửa người dùng' : 'Thêm người dùng mới'}
         </h2>
-        
+
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Tên</label>
-            <input 
+            <input
               type="text"
               value={formData.name}
               onChange={(e) => setFormData({ ...formData, name: e.target.value })}
@@ -221,7 +221,7 @@ const UserModal = ({ user, onClose, onSave }: UserModalProps) => {
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
-            <input 
+            <input
               type="email"
               value={formData.email}
               onChange={(e) => setFormData({ ...formData, email: e.target.value })}
@@ -231,7 +231,7 @@ const UserModal = ({ user, onClose, onSave }: UserModalProps) => {
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Vai trò</label>
-            <select 
+            <select
               value={formData.role}
               onChange={(e) => setFormData({ ...formData, role: e.target.value as AdminUser['role'] })}
               className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-coral-400"
@@ -243,7 +243,7 @@ const UserModal = ({ user, onClose, onSave }: UserModalProps) => {
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Trạng thái</label>
-            <select 
+            <select
               value={formData.status}
               onChange={(e) => setFormData({ ...formData, status: e.target.value as AdminUser['status'] })}
               className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-coral-400"
@@ -253,16 +253,16 @@ const UserModal = ({ user, onClose, onSave }: UserModalProps) => {
               <option value="banned">Đã cấm</option>
             </select>
           </div>
-          
+
           <div className="flex justify-end space-x-3 pt-4">
-            <button 
+            <button
               type="button"
               onClick={onClose}
               className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
             >
               Hủy
             </button>
-            <button 
+            <button
               type="submit"
               className="px-4 py-2 bg-coral-500 text-white rounded-lg hover:bg-coral-600 transition-colors"
             >

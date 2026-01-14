@@ -8,12 +8,12 @@ import type { Book } from '@/features/shared/types';
 const mapApiBookToLocal = (apiBook: ApiBook): Book => ({
   id: String(apiBook.id),
   title: apiBook.title,
-  author: apiBook.author.name,
+  author: apiBook.authorName,
   coverUrl: apiBook.coverImage,
   description: apiBook.description,
-  genre: apiBook.categories[0]?.name || 'General',
-  rating: apiBook.rating,
-  reviewCount: apiBook.totalReviews,
+  genre: [apiBook.categoryName],
+  rating: 0, // API doesn't provide rating
+  reviewCount: 0, // API doesn't provide review count
 });
 
 export const Home = () => {
@@ -28,14 +28,13 @@ export const Home = () => {
         setLoading(true);
         setError(null);
 
-        // Fetch both latest and recommended books
-        const [latestData, recommendedData] = await Promise.all([
-          booksService.getNewReleases(7),
-          booksService.getRecommendedBooks(7),
-        ]);
+        // Fetch all books and split them for display
+        const allBooks = await booksService.getAll();
 
-        setLatestBooks(latestData.map(mapApiBookToLocal));
-        setRecommendedBooks(recommendedData.map(mapApiBookToLocal));
+        // Map and take first 7 for latest, next 7 for recommended
+        const mappedBooks = allBooks.map(mapApiBookToLocal);
+        setLatestBooks(mappedBooks.slice(0, 7));
+        setRecommendedBooks(mappedBooks.slice(7, 14));
       } catch (err) {
         console.error('Error fetching books:', err);
         setError('Không thể tải sách. Vui lòng thử lại sau.');

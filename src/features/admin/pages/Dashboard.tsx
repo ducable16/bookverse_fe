@@ -1,6 +1,10 @@
 import { AdminHeader } from '../components/AdminHeader';
 import { Users, BookOpen, PenTool, Eye, TrendingUp, TrendingDown } from 'lucide-react';
-import { mockAdminUsers, mockAdminBooks, mockAuthors } from '../data/mockData';
+
+// TODO: Replace with API calls when backend is ready
+const mockAdminUsers: any[] = [];
+const mockAdminBooks: any[] = [];
+const mockAuthors: any[] = [];
 
 const stats = [
   {
@@ -43,8 +47,8 @@ export const Dashboard = () => {
 
   return (
     <div>
-      <AdminHeader 
-        title="Dashboard" 
+      <AdminHeader
+        title="Dashboard"
         subtitle="Tổng quan về hệ thống BookVerse"
       />
 
@@ -59,9 +63,8 @@ export const Dashboard = () => {
                   <div className={`p-3 rounded-lg ${stat.color}`}>
                     <Icon className="w-6 h-6 text-white" />
                   </div>
-                  <div className={`flex items-center space-x-1 text-sm ${
-                    stat.trend === 'up' ? 'text-green-600' : 'text-red-600'
-                  }`}>
+                  <div className={`flex items-center space-x-1 text-sm ${stat.trend === 'up' ? 'text-green-600' : 'text-red-600'
+                    }`}>
                     {stat.trend === 'up' ? (
                       <TrendingUp className="w-4 h-4" />
                     ) : (
@@ -87,7 +90,7 @@ export const Dashboard = () => {
               <div className="space-y-4">
                 {recentBooks.map((book) => (
                   <div key={book.id} className="flex items-center space-x-4">
-                    <img 
+                    <img
                       src={book.coverUrl}
                       alt={book.title}
                       className="w-12 h-16 object-cover rounded"
@@ -96,15 +99,14 @@ export const Dashboard = () => {
                       <div className="font-medium text-gray-900 truncate">{book.title}</div>
                       <div className="text-sm text-gray-500">{book.authorName}</div>
                     </div>
-                    <span className={`px-2 py-1 text-xs rounded-full ${
-                      book.status === 'published' 
-                        ? 'bg-green-100 text-green-700' 
+                    <span className={`px-2 py-1 text-xs rounded-full ${book.status === 'published'
+                        ? 'bg-green-100 text-green-700'
                         : book.status === 'draft'
-                        ? 'bg-yellow-100 text-yellow-700'
-                        : 'bg-gray-100 text-gray-700'
-                    }`}>
-                      {book.status === 'published' ? 'Đã xuất bản' : 
-                       book.status === 'draft' ? 'Bản nháp' : 'Lưu trữ'}
+                          ? 'bg-yellow-100 text-yellow-700'
+                          : 'bg-gray-100 text-gray-700'
+                      }`}>
+                      {book.status === 'published' ? 'Đã xuất bản' :
+                        book.status === 'draft' ? 'Bản nháp' : 'Lưu trữ'}
                     </span>
                   </div>
                 ))}
@@ -132,15 +134,14 @@ export const Dashboard = () => {
                       <div className="font-medium text-gray-900">{user.name}</div>
                       <div className="text-sm text-gray-500">{user.email}</div>
                     </div>
-                    <span className={`px-2 py-1 text-xs rounded-full ${
-                      user.role === 'admin' 
-                        ? 'bg-purple-100 text-purple-700' 
+                    <span className={`px-2 py-1 text-xs rounded-full ${user.role === 'admin'
+                        ? 'bg-purple-100 text-purple-700'
                         : user.role === 'manager'
-                        ? 'bg-blue-100 text-blue-700'
-                        : 'bg-gray-100 text-gray-700'
-                    }`}>
-                      {user.role === 'admin' ? 'Admin' : 
-                       user.role === 'manager' ? 'Manager' : 'User'}
+                          ? 'bg-blue-100 text-blue-700'
+                          : 'bg-gray-100 text-gray-700'
+                      }`}>
+                      {user.role === 'admin' ? 'Admin' :
+                        user.role === 'manager' ? 'Manager' : 'User'}
                     </span>
                   </div>
                 ))}

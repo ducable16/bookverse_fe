@@ -70,6 +70,38 @@ export const API_ENDPOINTS = {
         UPDATE: (chapterId: string | number) => `/chapters/update/${chapterId}`,
         DELETE: (chapterId: string | number) => `/chapters/delete/${chapterId}`,
     },
+
+    // Admin endpoints
+    ADMIN: {
+        DASHBOARD: '/admin/dashboard',
+        USERS: {
+            BASE: '/admin/users',
+            BY_ID: (id: string | number) => `/admin/users/${id}`,
+            BAN: (id: string | number) => `/admin/users/${id}/ban`,
+            UNBAN: (id: string | number) => `/admin/users/${id}/unban`,
+        },
+        BOOKS: {
+            BASE: '/admin/books',
+            BY_ID: (id: string | number) => `/admin/books/${id}`,
+            CREATE: '/admin/books',
+            UPDATE: (id: string | number) => `/admin/books/${id}`,
+            DELETE: (id: string | number) => `/admin/books/${id}`,
+        },
+        AUTHORS: {
+            BASE: '/admin/authors',
+            BY_ID: (id: string | number) => `/admin/authors/${id}`,
+            CREATE: '/admin/authors',
+            UPDATE: (id: string | number) => `/admin/authors/${id}`,
+            DELETE: (id: string | number) => `/admin/authors/${id}`,
+        },
+        CATEGORIES: {
+            BASE: '/admin/categories',
+            BY_ID: (id: string | number) => `/admin/categories/${id}`,
+            CREATE: '/admin/categories',
+            UPDATE: (id: string | number) => `/admin/categories/${id}`,
+            DELETE: (id: string | number) => `/admin/categories/${id}`,
+        },
+    },
 };
 
 // Request timeout (in milliseconds)
