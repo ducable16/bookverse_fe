@@ -72,6 +72,9 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
             localStorage.setItem('user', JSON.stringify(userData));
 
             setUser(userData);
+
+            // Dispatch custom event for auth change
+            window.dispatchEvent(new Event('auth-change'));
         } catch (error) {
             console.error('Login failed:', error);
             throw error;
@@ -92,6 +95,10 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
         localStorage.removeItem('token');
         localStorage.removeItem('user');
         setUser(null);
+
+        // Dispatch custom event for auth change
+        window.dispatchEvent(new Event('auth-change'));
+
         window.location.href = '/';
     };
 

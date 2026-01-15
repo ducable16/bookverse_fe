@@ -1,42 +1,63 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import {
-  ChevronLeft,
-  ChevronRight,
-  Menu,
-  X,
-  Type,
-  Sun,
-  Moon,
-  BookOpen
-} from 'lucide-react';
-import { Book } from '@/features/shared/types';
+import { ChevronLeft, ChevronRight, Settings } from 'lucide-react';
+
+import { Book } from '@/types';
+import { ReaderSidebar } from './ReaderSidebar';
 import { chaptersService } from '@/services';
-import type { ChapterResponse } from '@/types/api.types';
+import { ChapterResponse } from '@/types/api.types';
 
 interface ReaderProps {
   book: Book;
 }
 
+const READER_FONTS = [
+  { name: 'Be Vietnam Pro', value: "'Be Vietnam Pro', sans-serif", category: 'Sans-serif' },
+  { name: 'Noto Serif', value: "'Noto Serif', serif", category: 'Serif' },
+  { name: 'Merriweather', value: "'Merriweather', serif", category: 'Serif' },
+  { name: 'Lora', value: "'Lora', serif", category: 'Serif' },
+  { name: 'Inter', value: "'Inter', sans-serif", category: 'Sans-serif' },
+  { name: 'Roboto', value: "'Roboto', sans-serif", category: 'Sans-serif' },
+  { name: 'Noto Sans', value: "'Noto Sans', sans-serif", category: 'Sans-serif' },
+];
+
+const THEME_CLASSES = {
+  light: { bg: 'bg-cream-50', text: 'text-gray-900' },
+  sepia: { bg: 'bg-amber-50', text: 'text-amber-900' },
+  dark: { bg: 'bg-gray-900', text: 'text-gray-100' },
+};
+
 export const Reader = ({ book }: ReaderProps) => {
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
-
-  // Get chapter number from URL or default to 1
   const chapterNumberFromUrl = parseInt(searchParams.get('chapter') || '1');
 
+  // Data state
   const [chapters, setChapters] = useState<ChapterResponse[]>([]);
   const [currentChapterIndex, setCurrentChapterIndex] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // UI States
-  const [showChapterList, setShowChapterList] = useState(false);
-  const [fontSize, setFontSize] = useState(16);
-  const [isDarkMode, setIsDarkMode] = useState(false);
+  // UI state
+  const [showSidebar, setShowSidebar] = useState(false);
+  const [sidebarTab, setSidebarTab] = useState<'settings' | 'bookmarks' | 'highlights'>('settings');
   const [currentPage, setCurrentPage] = useState(0);
-  const [pages, setPages] = useState<string[]>([]);
-  const [windowDimensions, setWindowDimensions] = useState({ width: window.innerWidth, height: window.innerHeight });
+
+  // Reader settings
+  const [settings, setSettings] = useState({
+    fontSize: 16,
+    fontFamily: READER_FONTS[0].value,
+    lineHeight: 1.6,
+    pagesPerView: 2 as 1 | 2,
+    theme: 'sepia' as 'light' | 'sepia' | 'dark',
+  });
+
+  // Refs for pagination
+  const containerRef = useRef<HTMLDivElement>(null);
+  const contentRef = useRef<HTMLDivElement>(null);
+  const [totalPages, setTotalPages] = useState(1);
+  const [columnWidth, setColumnWidth] = useState(1);
+
 
   // Fetch chapters
   useEffect(() => {
@@ -44,14 +65,10 @@ export const Reader = ({ book }: ReaderProps) => {
       try {
         setLoading(true);
         setError(null);
-
         const chaptersData = await chaptersService.getByBook(Number(book.id));
         setChapters(chaptersData);
-
-        // Find chapter index from URL
-        const chapterIndex = chaptersData.findIndex(
-          ch => ch.chapterNumber === chapterNumberFromUrl
-        );
+        
+        const chapterIndex = chaptersData.findIndex(ch => ch.chapterNumber === chapterNumberFromUrl);
         setCurrentChapterIndex(chapterIndex >= 0 ? chapterIndex : 0);
       } catch (err) {
         console.error('Error fetching chapters:', err);
@@ -60,198 +77,98 @@ export const Reader = ({ book }: ReaderProps) => {
         setLoading(false);
       }
     };
-
     fetchChapters();
   }, [book.id, chapterNumberFromUrl]);
 
   const currentChapter = chapters[currentChapterIndex];
 
-  // Split content into pages when chapter or fontSize changes
+  // Gap between columns (gap-12 = 48px)
+  const columnGap = 48;
+
+  // Calculate column width and total pages
   useEffect(() => {
-    if (!currentChapter?.content) {
-      setPages([]);
-      return;
-    }
+    if (!containerRef.current || !currentChapter) return;
 
-    // Calculate available height for content
-    const viewportHeight = window.innerHeight;
-    const headerHeight = 80;
-    const footerHeight = 100;
-    const availableHeight = viewportHeight - headerHeight - footerHeight - 100;
+    const updateDimensions = () => {
+      const container = containerRef.current;
+      if (!container) return;
 
-    // Create a temporary container to measure content height
-    const tempContainer = document.createElement('div');
-    tempContainer.style.position = 'absolute';
-    tempContainer.style.visibility = 'hidden';
-    tempContainer.style.width = '100%';
-    tempContainer.style.maxWidth = '896px'; // max-w-4xl
-    tempContainer.style.fontSize = `${fontSize}px`;
-    tempContainer.style.lineHeight = '1.6';
-    tempContainer.className = 'prose prose-lg max-w-none leading-relaxed';
-    document.body.appendChild(tempContainer);
-
-    // Parse HTML content and split by block elements
-    const parser = new DOMParser();
-    const doc = parser.parseFromString(currentChapter.content, 'text/html');
-    const elements = Array.from(doc.body.children);
-
-    const newPages: string[] = [];
-    let currentPageContent = '';
-    let currentPageHeight = 0;
-
-    for (const element of elements) {
-      // Measure this element's height
-      tempContainer.innerHTML = element.outerHTML;
-      const elementHeight = tempContainer.offsetHeight;
-
-      // If element fits in current page, add it
-      if (currentPageHeight + elementHeight <= availableHeight) {
-        currentPageContent += element.outerHTML;
-        currentPageHeight += elementHeight;
+      const containerWidth = container.clientWidth;
+      
+      let effectiveColumnWidth: number;
+      if (settings.pagesPerView === 2) {
+        effectiveColumnWidth = Math.floor((containerWidth - columnGap) / 2);
+      } else {
+        effectiveColumnWidth = containerWidth;
       }
-      // If current page has content and element doesn't fit, start new page
-      else if (currentPageContent) {
-        // Save current page
-        newPages.push(currentPageContent.trim());
-
-        // Check if element fits in a fresh page
-        if (elementHeight <= availableHeight) {
-          // Element fits in new page, start new page with this element
-          currentPageContent = element.outerHTML;
-          currentPageHeight = elementHeight;
-        } else {
-          // Element is too large for one page, need to split it
-          const textContent = element.textContent || '';
-          const tagName = element.tagName.toLowerCase();
-
-          // Split text into sentences or chunks
-          const sentences = textContent.match(/[^.!?]+[.!?]+/g) || [textContent];
-
-          currentPageContent = '';
-          currentPageHeight = 0;
-
-          for (const sentence of sentences) {
-            const testElement = `<${tagName}>${sentence}</${tagName}>`;
-            tempContainer.innerHTML = currentPageContent + testElement;
-            const testHeight = tempContainer.offsetHeight;
-
-            if (testHeight <= availableHeight) {
-              currentPageContent += testElement;
-              currentPageHeight = testHeight;
-            } else {
-              // Current chunk is full, save it
-              if (currentPageContent) {
-                newPages.push(currentPageContent.trim());
-              }
-              currentPageContent = testElement;
-              tempContainer.innerHTML = testElement;
-              currentPageHeight = tempContainer.offsetHeight;
-            }
-          }
-        }
-      }
-      // First element and it's too large
-      else {
-        const textContent = element.textContent || '';
-        const tagName = element.tagName.toLowerCase();
-        const sentences = textContent.match(/[^.!?]+[.!?]+/g) || [textContent];
-
-        for (const sentence of sentences) {
-          const testElement = `<${tagName}>${sentence}</${tagName}>`;
-          tempContainer.innerHTML = currentPageContent + testElement;
-          const testHeight = tempContainer.offsetHeight;
-
-          if (testHeight <= availableHeight) {
-            currentPageContent += testElement;
-            currentPageHeight = testHeight;
-          } else {
-            if (currentPageContent) {
-              newPages.push(currentPageContent.trim());
-            }
-            currentPageContent = testElement;
-            tempContainer.innerHTML = testElement;
-            currentPageHeight = tempContainer.offsetHeight;
-          }
-        }
-      }
-    }
-
-    // Add the last page
-    if (currentPageContent.trim()) {
-      newPages.push(currentPageContent.trim());
-    }
-
-    // Clean up
-    document.body.removeChild(tempContainer);
-
-    // Fallback to single page if no pages were created
-    setPages(newPages.length > 0 ? newPages : [currentChapter.content]);
-    setCurrentPage(0);
-  }, [currentChapter, fontSize, windowDimensions]);
-
-  // Handle window resize
-  useEffect(() => {
-    const handleResize = () => {
-      setWindowDimensions({ width: window.innerWidth, height: window.innerHeight });
+      
+      setColumnWidth(effectiveColumnWidth);
     };
 
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
-  }, []);
+    // Call immediately when effect runs
+    updateDimensions();
+    
+    const resizeObserver = new ResizeObserver(updateDimensions);
+    resizeObserver.observe(containerRef.current);
+    
+    return () => resizeObserver.disconnect();
+  }, [settings.pagesPerView, currentChapter]);
 
-  const hasPrevPage = currentPage > 0;
-  const hasNextPage = currentPage < pages.length - 1;
-  const hasPrevChapter = currentChapterIndex > 0;
-  const hasNextChapter = currentChapterIndex < chapters.length - 1;
+  // Calculate total pages after content renders
+  // Note: Each column = 1 page, so total pages = total columns
+  useEffect(() => {
+    if (!contentRef.current || !columnWidth) return;
 
+    const timer = setTimeout(() => {
+      const content = contentRef.current;
+      if (!content) return;
+
+      const scrollWidth = content.scrollWidth;
+      // Total columns (each column is 1 page)
+      const totalColumns = Math.max(1, Math.ceil(scrollWidth / columnWidth));
+      setTotalPages(totalColumns);
+      
+      // Reset to first page when chapter changes
+      setCurrentPage(0);
+    }, 100);
+
+    return () => clearTimeout(timer);
+  }, [currentChapter?.id, columnWidth, settings.fontSize, settings.fontFamily, settings.lineHeight]);
+
+  // Navigation handlers
+  // Jump by number of pages displayed at once (1 or 2)
   const goToPrevPage = () => {
-    if (hasPrevPage) {
-      setCurrentPage(currentPage - 1);
-    } else if (hasPrevChapter) {
-      // Go to last page of previous chapter
-      const newIndex = currentChapterIndex - 1;
-      setCurrentChapterIndex(newIndex);
-      setSearchParams({ chapter: String(chapters[newIndex].chapterNumber) });
-      // Page will be set to last page in useEffect
+    const jump = settings.pagesPerView;
+    if (currentPage > 0) {
+      setCurrentPage(prev => Math.max(0, prev - jump));
     }
   };
 
   const goToNextPage = () => {
-    if (hasNextPage) {
-      setCurrentPage(currentPage + 1);
-    } else if (hasNextChapter) {
-      // Go to first page of next chapter
-      const newIndex = currentChapterIndex + 1;
-      setCurrentChapterIndex(newIndex);
-      setSearchParams({ chapter: String(chapters[newIndex].chapterNumber) });
-      setCurrentPage(0);
+    const jump = settings.pagesPerView;
+    const maxPage = totalPages - settings.pagesPerView;
+    if (currentPage < maxPage) {
+      setCurrentPage(prev => Math.min(maxPage, prev + jump));
     }
-  };
-
-  const goToChapter = (index: number) => {
-    setCurrentChapterIndex(index);
-    setSearchParams({ chapter: String(chapters[index].chapterNumber) });
-    setShowChapterList(false);
-    setCurrentPage(0);
   };
 
   // Keyboard navigation
   useEffect(() => {
     const handleKeyPress = (e: KeyboardEvent) => {
+      if (showSidebar) return;
       if (e.key === 'ArrowLeft') goToPrevPage();
       if (e.key === 'ArrowRight') goToNextPage();
     };
-
     window.addEventListener('keydown', handleKeyPress);
     return () => window.removeEventListener('keydown', handleKeyPress);
-  }, [currentPage, currentChapterIndex, pages.length]);
+  }, [showSidebar, currentPage, totalPages]);
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-cream-200">
+      <div className="min-h-screen flex items-center justify-center bg-cream-50">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-accent-teal mx-auto mb-4"></div>
-          <p className="text-gray-600">Đang tải chương...</p>
+          <p className="text-gray-600">Đang tải...</p>
         </div>
       </div>
     );
@@ -259,13 +176,12 @@ export const Reader = ({ book }: ReaderProps) => {
 
   if (error || !currentChapter) {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-cream-200">
+      <div className="min-h-screen flex items-center justify-center bg-cream-50">
         <div className="text-center">
-          <h1 className="text-2xl font-bold mb-2">Không tìm thấy chương</h1>
-          <p className="text-gray-600 mb-4">{error || 'Chương này không tồn tại.'}</p>
+          <p className="text-red-600 mb-4">{error || 'Không thể tải nội dung'}</p>
           <button
-            onClick={() => navigate(`/books/${book.id}`)}
-            className="bg-accent-teal text-white px-6 py-2 rounded-full hover:bg-teal-600 transition-colors"
+            onClick={() => navigate(`/book/${book.id}`)}
+            className="px-4 py-2 bg-accent-teal text-white rounded-lg hover:bg-teal-600"
           >
             Quay lại
           </button>
@@ -274,164 +190,132 @@ export const Reader = ({ book }: ReaderProps) => {
     );
   }
 
+  const themeClasses = THEME_CLASSES[settings.theme];
+
   return (
-    <div className={`min-h-screen ${isDarkMode ? 'bg-gray-900 text-gray-100' : 'bg-cream-200 text-gray-900'}`}>
+    <div className={`h-screen w-screen overflow-hidden flex flex-col ${themeClasses.bg} ${themeClasses.text}`}>
+      {/* Sidebar */}
+      <ReaderSidebar
+        isOpen={showSidebar}
+        onClose={() => setShowSidebar(false)}
+        settings={settings}
+        onSettingsChange={(newSettings) => setSettings(prev => ({ ...prev, ...newSettings }))}
+        fonts={READER_FONTS}
+        activeTab={sidebarTab}
+        onTabChange={setSidebarTab}
+      >
+        {sidebarTab === 'bookmarks' && (
+          <div className="text-center py-8 text-gray-500">
+            Chưa có bookmark nào
+          </div>
+        )}
+        {sidebarTab === 'highlights' && (
+          <div className="text-center py-8 text-gray-500">
+            Chưa có highlight nào
+          </div>
+        )}
+      </ReaderSidebar>
+
       {/* Header */}
-      <header className={`sticky top-0 z-20 px-4 md:px-8 py-4 flex items-center justify-between border-b ${isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-cream-200 border-cream-300'}`}>
-        <div className="flex items-center space-x-4">
+      <header className={`flex-none px-6 py-4 flex items-center justify-between border-b ${
+        settings.theme === 'dark' ? 'bg-gray-800 border-gray-700' :
+        settings.theme === 'sepia' ? 'bg-amber-100 border-amber-200' :
+        'bg-white border-gray-200'
+      }`}>
+        <div className="flex items-center gap-4 flex-1 min-w-0">
           <button
-            onClick={() => navigate(`/books/${book.id}`)}
-            className="p-2 hover:bg-cream-300 dark:hover:bg-gray-700 rounded-full transition-colors"
+            onClick={() => navigate(`/book/${book.id}`)}
+            className="p-2 hover:bg-black/5 rounded-full transition-colors flex-shrink-0"
           >
             <ChevronLeft className="w-5 h-5" />
           </button>
-          <div>
-            <h1 className="font-bold text-lg">{book.title}</h1>
-            <p className="text-sm text-gray-600 dark:text-gray-400">
+          <div className="min-w-0 flex-1">
+            <h1 className="font-bold text-lg truncate">{book.title}</h1>
+            <p className="text-sm opacity-70 truncate">
               Chương {currentChapter.chapterNumber}: {currentChapter.title}
             </p>
           </div>
         </div>
 
-        {/* Controls */}
-        <div className="flex items-center space-x-2">
-          {/* Font Size */}
-          <div className="hidden md:flex items-center space-x-2 px-3 py-1 bg-cream-100 dark:bg-gray-700 rounded-full">
-            <Type className="w-4 h-4" />
-            <button
-              onClick={() => setFontSize(Math.max(12, fontSize - 2))}
-              className="px-2 py-1 hover:bg-cream-200 dark:hover:bg-gray-600 rounded"
-            >
-              -
-            </button>
-            <span className="text-sm">{fontSize}px</span>
-            <button
-              onClick={() => setFontSize(Math.min(24, fontSize + 2))}
-              className="px-2 py-1 hover:bg-cream-200 dark:hover:bg-gray-600 rounded"
-            >
-              +
-            </button>
-          </div>
-
-          {/* Dark Mode Toggle */}
-          <button
-            onClick={() => setIsDarkMode(!isDarkMode)}
-            className="p-2 hover:bg-cream-300 dark:hover:bg-gray-700 rounded-full transition-colors"
-          >
-            {isDarkMode ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
-          </button>
-
-          {/* Chapter List Toggle */}
-          <button
-            onClick={() => setShowChapterList(!showChapterList)}
-            className="p-2 hover:bg-cream-300 dark:hover:bg-gray-700 rounded-full transition-colors"
-          >
-            {showChapterList ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
-          </button>
-        </div>
+        <button
+          onClick={() => {
+            setSidebarTab('settings');
+            setShowSidebar(!showSidebar);
+          }}
+          className="p-2 hover:bg-black/5 rounded-full transition-colors flex-shrink-0"
+        >
+          <Settings className="w-5 h-5" />
+        </button>
       </header>
 
-      <div className="flex">
-        {/* Chapter List Sidebar */}
-        {showChapterList && (
-          <aside className={`fixed md:sticky top-16 right-0 h-[calc(100vh-4rem)] w-80 overflow-y-auto border-l ${isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-cream-100 border-cream-300'} z-10`}>
-            <div className="p-4">
-              <h2 className="font-bold text-lg mb-4 flex items-center space-x-2">
-                <BookOpen className="w-5 h-5" />
-                <span>Danh sách chương</span>
-              </h2>
-              <div className="space-y-2">
-                {chapters.map((chapter, index) => (
-                  <button
-                    key={chapter.id}
-                    onClick={() => goToChapter(index)}
-                    className={`w-full text-left p-3 rounded-lg transition-colors ${index === currentChapterIndex
-                      ? 'bg-accent-teal text-white'
-                      : isDarkMode
-                        ? 'hover:bg-gray-700'
-                        : 'hover:bg-cream-200'
-                      }`}
-                  >
-                    <div className="font-semibold">Chương {chapter.chapterNumber}</div>
-                    <div className={`text-sm line-clamp-1 ${index === currentChapterIndex ? 'text-white' : 'text-gray-600 dark:text-gray-400'}`}>
-                      {chapter.title}
-                    </div>
-                  </button>
-                ))}
-              </div>
-            </div>
-          </aside>
-        )}
+      {/* Main Content */}
+      <main className="flex-1 overflow-hidden relative flex items-center justify-center p-8">
+        {/* Previous Page Button */}
+        <button
+          onClick={goToPrevPage}
+          disabled={currentPage === 0}
+          className={`absolute left-8 top-1/2 -translate-y-1/2 z-10 p-3 rounded-full transition-all ${
+            currentPage > 0
+              ? 'hover:bg-black/5 cursor-pointer'
+              : 'opacity-30 cursor-not-allowed'
+          }`}
+        >
+          <ChevronLeft className="w-8 h-8" />
+        </button>
 
-        {/* Main Content */}
-        <main className="flex-1 px-4 md:px-8 py-8 max-w-4xl mx-auto">
-          {/* Chapter Title */}
-          <div className="mb-6 text-center">
-            <h2 className="text-2xl font-bold mb-2">
-              Chương {currentChapter.chapterNumber}
-            </h2>
-            <h3 className="text-xl text-gray-600 dark:text-gray-400">
-              {currentChapter.title}
-            </h3>
-          </div>
-
-          {/* Page Content - Fixed Height */}
-          <div
-            className="relative overflow-hidden"
+        {/* Content Container */}
+        <div ref={containerRef} className="max-w-6xl w-full h-full overflow-hidden">
+          {/* Content Area with 2 Columns */}
+          <div 
+            ref={contentRef}
+            className={`h-full ${
+              settings.pagesPerView === 2 ? 'columns-2 gap-12' : 'columns-1'
+            }`}
             style={{
-              minHeight: `calc(100vh - 300px)`,
-              maxHeight: `calc(100vh - 300px)`
+              fontSize: `${settings.fontSize}px`,
+              fontFamily: settings.fontFamily,
+              lineHeight: settings.lineHeight,
+              columnFill: 'auto',
+              columnWidth: `${columnWidth}px`,
+              columnGap: `${columnGap}px`,
+              transform: `translateX(-${currentPage * (columnWidth + columnGap)}px)`,
+              transition: 'transform 0.3s ease',
             }}
           >
-            <div
-              className="prose prose-lg dark:prose-invert max-w-none leading-relaxed"
-              style={{ fontSize: `${fontSize}px` }}
-              dangerouslySetInnerHTML={{ __html: pages[currentPage] || 'Đang tải...' }}
+            <div 
+              className="prose prose-lg max-w-none"
+              dangerouslySetInnerHTML={{ __html: currentChapter.content }}
             />
           </div>
+        </div>
 
-          {/* Page Navigation */}
-          <div className="flex items-center justify-between mt-8 pt-6 border-t border-gray-300 dark:border-gray-700">
-            <button
-              onClick={goToPrevPage}
-              disabled={!hasPrevPage && !hasPrevChapter}
-              className={`flex items-center space-x-2 px-6 py-3 rounded-full transition-colors ${(hasPrevPage || hasPrevChapter)
-                ? 'bg-accent-teal text-white hover:bg-teal-600'
-                : 'bg-gray-300 dark:bg-gray-700 text-gray-500 cursor-not-allowed'
-                }`}
-            >
-              <ChevronLeft className="w-5 h-5" />
-              <span>{hasPrevPage ? 'Trang trước' : 'Chương trước'}</span>
-            </button>
+        {/* Next Page Button */}
+        <button
+          onClick={goToNextPage}
+          disabled={currentPage >= totalPages - 1}
+          className={`absolute right-8 top-1/2 -translate-y-1/2 z-10 p-3 rounded-full transition-all ${
+            currentPage < totalPages - 1
+              ? 'hover:bg-black/5 cursor-pointer'
+              : 'opacity-30 cursor-not-allowed'
+          }`}
+        >
+          <ChevronRight className="w-8 h-8" />
+        </button>
+      </main>
 
-            <div className="text-center">
-              <div className="text-sm text-gray-600 dark:text-gray-400">
-                Trang {currentPage + 1} / {pages.length}
-              </div>
-              <div className="text-xs text-gray-500 dark:text-gray-500 mt-1">
-                Chương {currentChapterIndex + 1} / {chapters.length}
-              </div>
-            </div>
-
-            <button
-              onClick={goToNextPage}
-              disabled={!hasNextPage && !hasNextChapter}
-              className={`flex items-center space-x-2 px-6 py-3 rounded-full transition-colors ${(hasNextPage || hasNextChapter)
-                ? 'bg-accent-teal text-white hover:bg-teal-600'
-                : 'bg-gray-300 dark:bg-gray-700 text-gray-500 cursor-not-allowed'
-                }`}
-            >
-              <span>{hasNextPage ? 'Trang sau' : 'Chương sau'}</span>
-              <ChevronRight className="w-5 h-5" />
-            </button>
-          </div>
-
-          {/* Keyboard Hint */}
-          <div className="text-center mt-4 text-xs text-gray-500 dark:text-gray-600">
-            Dùng phím ← → để chuyển trang
-          </div>
-        </main>
-      </div>
+      {/* Footer */}
+      <footer className={`flex-none py-4 text-center border-t ${
+        settings.theme === 'dark' ? 'bg-gray-800 border-gray-700' :
+        settings.theme === 'sepia' ? 'bg-amber-100 border-amber-200' :
+        'bg-white border-gray-200'
+      }`}>
+        <div className="text-sm font-medium">
+          {settings.pagesPerView === 2 && currentPage + 1 < totalPages
+            ? `${currentPage + 1}-${Math.min(currentPage + 2, totalPages)}/${totalPages}`
+            : `${currentPage + 1}/${totalPages}`
+          }
+        </div>
+      </footer>
     </div>
   );
 };

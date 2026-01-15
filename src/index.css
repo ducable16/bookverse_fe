@@ -60,6 +60,25 @@ html {
   @apply outline-none ring-2 ring-[#F97068] ring-offset-2;
 }
 
+/* Reader Sidebar Animations */
+@keyframes slideInFromLeft {
+  from {
+    transform: translateX(-100%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+
+@keyframes slideOutToLeft {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-100%);
+  }
+}
+
 /* Tiptap Editor Styles */
 .tiptap-editor .ProseMirror {
   min-height: 300px;
@@ -113,4 +132,18 @@ html {
 
 .tiptap-editor .ProseMirror em {
   @apply italic;
+}
+
+/* Chapter Cover Page Styles */
+.chapter-cover-page {
+  /* Ensure proper column break */
+  -webkit-column-break-after: always;
+  column-break-after: always;
+  break-after: column;
+  
+  /* Prevent text overflow */
+  overflow: hidden;
+  
+  /* Ensure it takes up full column height */
+  box-sizing: border-box;
 }

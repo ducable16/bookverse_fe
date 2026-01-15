@@ -7,31 +7,47 @@ import apiClient from '../lib/api-client';
 import type {
     ReadingHistory,
     SavedBook,
-    UpdateProgressRequest,
+    ReadingHistoryRequest,
     ApiResponse
 } from '../types/api.types';
 
 export const readingService = {
     /**
-     * Get user's reading history
+     * Save reading history
      */
-    getReadingHistory: async (): Promise<ReadingHistory[]> => {
-        const response = await apiClient.get<ApiResponse<ReadingHistory[]>>(
-            '/user/reading-history'
-        );
-        return response as unknown as ReadingHistory[];
+    saveReadingHistory: async (data: ReadingHistoryRequest): Promise<ReadingHistory> => {
+        const response = await apiClient.post<ApiResponse<ReadingHistory>>(
+            '/reading-history/save',
+            data
+        ) as unknown as ApiResponse<ReadingHistory>;
+        return response.data;
     },
 
+    /**
+     * Get user's reading history
+     */
+    getReadingHistory: async (userId: number): Promise<ReadingHistory[]> => {
+        const response = await apiClient.get<ApiResponse<ReadingHistory[]>>(
+            `/reading-history/user/${userId}`
+        ) as unknown as ApiResponse<ReadingHistory[]>;
+        return response.data;
+    },
 
     /**
-     * Update reading progress
+     * Get specific book history
      */
-    updateProgress: async (data: UpdateProgressRequest): Promise<ReadingHistory> => {
-        const response = await apiClient.post<ApiResponse<ReadingHistory>>(
-            '/user/reading-history',
-            data
-        );
-        return response as unknown as ReadingHistory;
+    getReadingHistoryByBook: async (userId: number, bookId: number): Promise<ReadingHistory> => {
+        const response = await apiClient.get<ApiResponse<ReadingHistory>>(
+            `/reading-history/user/${userId}/book/${bookId}`
+        ) as unknown as ApiResponse<ReadingHistory>;
+        return response.data;
+    },
+
+    /**
+     * Delete reading history entry
+     */
+    deleteReadingHistory: async (id: number): Promise<void> => {
+        await apiClient.post(`/reading-history/delete/${id}`);
     },
 
     /**

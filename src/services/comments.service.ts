@@ -6,23 +6,28 @@
 import apiClient from '../lib/api-client';
 import { API_ENDPOINTS } from '../config/api.config';
 import type {
-    Comment,
-    CreateCommentRequest,
+    CommentResponse,
+    CommentCreateRequest,
     UpdateCommentRequest,
     ApiResponse
 } from '../types/api.types';
 
 export const commentsService = {
-    // Get comments by book
-    getByBook: async (bookId: number): Promise<Comment[]> => {
-        const response: ApiResponse<Comment[]> = await apiClient.get(
+    // Get comments by book (with nested replies)
+    getByBook: async (bookId: number): Promise<CommentResponse[]> => {
+        const response: ApiResponse<CommentResponse[]> = await apiClient.get(
             API_ENDPOINTS.BOOKS.COMMENTS(bookId)
         );
         return response.data;
     },
 
-    // Create comment
-    create: async (bookId: number, commentData: CreateCommentRequest): Promise<void> => {
+    // Create comment or reply
+    create: async (bookId: number, content: string, parentId?: number): Promise<void> => {
+        const commentData: CommentCreateRequest = {
+            content,
+            bookId,
+            parentId,
+        };
         await apiClient.post(
             API_ENDPOINTS.BOOKS.COMMENTS(bookId),
             commentData
@@ -30,7 +35,8 @@ export const commentsService = {
     },
 
     // Update comment
-    update: async (bookId: number, commentId: number, commentData: UpdateCommentRequest): Promise<void> => {
+    update: async (bookId: number, commentId: number, content: string): Promise<void> => {
+        const commentData: UpdateCommentRequest = { content };
         await apiClient.put(
             API_ENDPOINTS.BOOKS.COMMENT_BY_ID(bookId, commentId),
             commentData

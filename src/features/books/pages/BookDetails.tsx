@@ -1,16 +1,17 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { ChevronLeft, BookOpen, Bookmark, Heart, Share2 } from 'lucide-react';
-import { StarRating } from '../components/StarRating';
-import { booksService, commentsService, chaptersService } from '@/services';
-import type { Book as ApiBook, Comment, ChapterResponse } from '@/types/api.types';
+import { booksService, chaptersService } from '@/services';
+import type { Book as ApiBook, ChapterResponse } from '@/types/api.types';
+import { CommentSection } from '@/features/book-details/components/CommentSection';
+import { useAuth } from '@/contexts/AuthContext';
 
 export const BookDetails = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const { user } = useAuth();
 
   const [book, setBook] = useState<ApiBook | null>(null);
-  const [comments, setComments] = useState<Comment[]>([]);
   const [chapters, setChapters] = useState<ChapterResponse[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -23,14 +24,9 @@ export const BookDetails = () => {
         setLoading(true);
         setError(null);
 
-        // Fetch book details and comments in parallel
-        const [bookData, commentsData] = await Promise.all([
-          booksService.getById(Number(id)),
-          commentsService.getByBook(Number(id)).catch(() => []), // Fallback to empty if comments fail
-        ]);
-
+        // Fetch book details
+        const bookData = await booksService.getById(Number(id));
         setBook(bookData);
-        setComments(commentsData);
 
         // Fetch chapters
         const chaptersData = await chaptersService.getByBook(Number(id)).catch(() => []);
@@ -173,36 +169,10 @@ export const BookDetails = () => {
       </div>
 
       {/* Comments Section */}
-      <div className="mt-10">
-        <h2 className="text-lg font-bold mb-4">Comment ({comments.length})</h2>
-
-        {comments.length === 0 ? (
-          <div className="bg-cream-100 rounded-xl p-6 text-center text-gray-500">
-            Chưa có bình luận nào
-          </div>
-        ) : (
-          <div className="space-y-4">
-            {comments.map(comment => (
-              <div key={comment.id} className="bg-cream-100 rounded-xl p-6">
-                <div className="flex items-start justify-between">
-                  <div className="flex items-center space-x-3">
-                    <div className="w-10 h-10 rounded-full bg-accent-teal flex items-center justify-center text-white font-semibold">
-                      {comment.username.charAt(0).toUpperCase()}
-                    </div>
-                    <div>
-                      <div className="font-semibold text-gray-900">{comment.username}</div>
-                      <div className="text-gray-700 mt-1">{comment.content}</div>
-                    </div>
-                  </div>
-                  <span className="text-sm text-gray-500">
-                    {new Date(comment.createdAt).toLocaleDateString('vi-VN')}
-                  </span>
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
+      <CommentSection
+        bookId={Number(id)}
+        currentUserId={user?.id}
+      />
     </div>
   );
 };

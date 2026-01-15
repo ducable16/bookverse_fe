@@ -218,25 +218,18 @@ export interface Review {
 }
 
 // Reading History Types
+export interface ReadingHistoryRequest {
+    userId: number;
+    bookId: number;
+    lastReadChapter: number;
+}
+
 export interface ReadingHistory {
     id: number;
-    book: {
-        id: number;
-        title: string;
-        coverImage: string;
-        rating: number;
-        totalReviews: number;
-        author: {
-            name: string;
-        };
-        categories: Array<{
-            name: string;
-        }>;
-    };
-    progress: number;
-    lastPage: number;
-    totalPages: number;
-    lastReadAt: string;
+    user: UserResponse;
+    book: BookResponse;
+    lastReadChapter: number;
+    lastReadTime: string;
 }
 
 export interface SavedBook {
@@ -257,6 +250,7 @@ export interface SavedBook {
     savedAt: string;
 }
 
+// Deprecated: UpdateProgressRequest is replaced by ReadingHistoryRequest
 export interface UpdateProgressRequest {
     bookId: number;
     lastPage: number;

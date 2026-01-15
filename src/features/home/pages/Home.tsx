@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { BookGrid } from '@/features/books/components/BookGrid';
-import { booksService } from '@/services';
+import { booksService, readingService } from '@/services';
 import type { Book as ApiBook } from '@/types/api.types';
 import type { Book } from '@/features/shared/types';
 
@@ -19,6 +19,7 @@ const mapApiBookToLocal = (apiBook: ApiBook): Book => ({
 export const Home = () => {
   const [latestBooks, setLatestBooks] = useState<Book[]>([]);
   const [recommendedBooks, setRecommendedBooks] = useState<Book[]>([]);
+  const [readingHistory, setReadingHistory] = useState<import('@/types/api.types').ReadingHistory[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -30,6 +31,20 @@ export const Home = () => {
 
         // Fetch all books and split them for display
         const allBooks = await booksService.getAll();
+
+        // Fetch reading history if user is logged in
+        const userStr = localStorage.getItem('user');
+        if (userStr) {
+          try {
+            const user = JSON.parse(userStr);
+            if (user?.id !== undefined && user?.id !== null) {
+              const history = await readingService.getReadingHistory(user.id);
+              setReadingHistory(history);
+            }
+          } catch (e) {
+            console.error('Failed to load reading history:', e);
+          }
+        }
 
         // Map and take first 7 for latest, next 7 for recommended
         const mappedBooks = allBooks.map(mapApiBookToLocal);
@@ -75,6 +90,42 @@ export const Home = () => {
 
   return (
     <div className="px-8 py-6 space-y-12">
+      {/* Reading History Section */}
+      {readingHistory.length > 0 && (
+        <div className="space-y-4">
+          <h2 className="text-2xl font-bold text-gray-800">Continue Reading</h2>
+          <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-6">
+            {readingHistory.map((item) => (
+              <a
+                key={item.id}
+                href={`/read/${item.book.id}`}
+                className="group block bg-white rounded-xl shadow-sm hover:shadow-md transition-all overflow-hidden border border-gray-100"
+              >
+                <div className="aspect-[2/3] relative overflow-hidden">
+                  <img
+                    src={item.book.coverImage}
+                    alt={item.book.title}
+                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+                </div>
+                <div className="p-3">
+                  <h3 className="font-semibold text-gray-900 truncate" title={item.book.title}>
+                    {item.book.title}
+                  </h3>
+                  <p className="text-sm text-accent-teal mt-1">
+                    Chapter {item.lastReadChapter}
+                  </p>
+                  <p className="text-xs text-gray-400 mt-1">
+                    {new Date(item.lastReadTime).toLocaleDateString()}
+                  </p>
+                </div>
+              </a>
+            ))}
+          </div>
+        </div>
+      )}
+
       {/* Latest Section */}
       <BookGrid
         books={latestBooks}
