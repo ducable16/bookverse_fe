@@ -135,12 +135,35 @@ export const Reader = ({ book }: ReaderProps) => {
     return () => clearTimeout(timer);
   }, [currentChapter?.id, columnWidth, settings.fontSize, settings.fontFamily, settings.lineHeight]);
 
+  // Chapter navigation
+  const hasPrevChapter = currentChapterIndex > 0;
+  const hasNextChapter = currentChapterIndex < chapters.length - 1;
+
+  const goToPrevChapter = () => {
+    if (!hasPrevChapter) return;
+    const newIndex = currentChapterIndex - 1;
+    setCurrentChapterIndex(newIndex);
+    setSearchParams({ chapter: String(chapters[newIndex].chapterNumber) });
+    setCurrentPage(0);
+  };
+
+  const goToNextChapter = () => {
+    if (!hasNextChapter) return;
+    const newIndex = currentChapterIndex + 1;
+    setCurrentChapterIndex(newIndex);
+    setSearchParams({ chapter: String(chapters[newIndex].chapterNumber) });
+    setCurrentPage(0);
+  };
+
   // Navigation handlers
   // Jump by number of pages displayed at once (1 or 2)
   const goToPrevPage = () => {
     const jump = settings.pagesPerView;
     if (currentPage > 0) {
       setCurrentPage(prev => Math.max(0, prev - jump));
+    } else if (hasPrevChapter) {
+      // At first page, go to previous chapter
+      goToPrevChapter();
     }
   };
 
@@ -149,6 +172,9 @@ export const Reader = ({ book }: ReaderProps) => {
     const maxPage = totalPages - settings.pagesPerView;
     if (currentPage < maxPage) {
       setCurrentPage(prev => Math.min(maxPage, prev + jump));
+    } else if (hasNextChapter) {
+      // At last page, go to next chapter
+      goToNextChapter();
     }
   };
 
@@ -253,9 +279,9 @@ export const Reader = ({ book }: ReaderProps) => {
         {/* Previous Page Button */}
         <button
           onClick={goToPrevPage}
-          disabled={currentPage === 0}
+          disabled={currentPage === 0 && !hasPrevChapter}
           className={`absolute left-8 top-1/2 -translate-y-1/2 z-10 p-3 rounded-full transition-all ${
-            currentPage > 0
+            currentPage > 0 || hasPrevChapter
               ? 'hover:bg-black/5 cursor-pointer'
               : 'opacity-30 cursor-not-allowed'
           }`}
@@ -292,9 +318,9 @@ export const Reader = ({ book }: ReaderProps) => {
         {/* Next Page Button */}
         <button
           onClick={goToNextPage}
-          disabled={currentPage >= totalPages - 1}
+          disabled={currentPage >= totalPages - settings.pagesPerView && !hasNextChapter}
           className={`absolute right-8 top-1/2 -translate-y-1/2 z-10 p-3 rounded-full transition-all ${
-            currentPage < totalPages - 1
+            currentPage < totalPages - settings.pagesPerView || hasNextChapter
               ? 'hover:bg-black/5 cursor-pointer'
               : 'opacity-30 cursor-not-allowed'
           }`}
