@@ -1,5 +1,7 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { BookGrid } from '@/features/books/components/BookGrid';
+import { SearchFilterBar, SearchParams } from '../components/SearchFilterBar';
 import { booksService, readingService } from '@/services';
 import type { Book as ApiBook } from '@/types/api.types';
 import type { Book } from '@/features/shared/types';
@@ -17,6 +19,7 @@ const mapApiBookToLocal = (apiBook: ApiBook): Book => ({
 });
 
 export const Home = () => {
+  const navigate = useNavigate();
   const [latestBooks, setLatestBooks] = useState<Book[]>([]);
   const [recommendedBooks, setRecommendedBooks] = useState<Book[]>([]);
   const [readingHistory, setReadingHistory] = useState<import('@/types/api.types').ReadingHistory[]>([]);
@@ -61,6 +64,17 @@ export const Home = () => {
     fetchBooks();
   }, []);
 
+  const handleSearch = (params: SearchParams) => {
+    // Build query string
+    const queryParams = new URLSearchParams();
+    if (params.query) queryParams.set('q', params.query);
+    if (params.categoryId) queryParams.set('category', params.categoryId);
+    if (params.authorId) queryParams.set('author', params.authorId);
+    
+    // Navigate to search page
+    navigate(`/search?${queryParams.toString()}`);
+  };
+
   if (loading) {
     return (
       <div className="px-8 py-6 flex items-center justify-center min-h-[400px]">
@@ -89,7 +103,10 @@ export const Home = () => {
   }
 
   return (
-    <div className="px-8 py-6 space-y-12">
+    <div className="px-8 py-6 space-y-8">
+      {/* Search Filter Bar */}
+      <SearchFilterBar onSearch={handleSearch} />
+
       {/* Reading History Section */}
       {readingHistory.length > 0 && (
         <div className="space-y-4">

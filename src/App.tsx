@@ -8,6 +8,7 @@ import { ReadBook } from './features/reader/pages/ReadBook';
 import { History } from './features/history/pages/History';
 import { Saved } from './features/saved/pages/Saved';
 import { Categories } from './features/categories/pages/Categories';
+import { SearchResults } from './features/search/pages/SearchResults';
 import { Unauthorized } from './pages/Unauthorized';
 
 // Admin imports
@@ -31,6 +32,7 @@ function App() {
           {/* Public Routes with Layout */}
           <Route path="/" element={<Layout><Home /></Layout>} />
           <Route path="/book/:id" element={<Layout><BookDetails /></Layout>} />
+          <Route path="/search" element={<Layout><SearchResults /></Layout>} />
           <Route path="/history" element={<Layout><History /></Layout>} />
           <Route path="/saved" element={<Layout><Saved /></Layout>} />
           <Route path="/categories" element={<Layout><Categories /></Layout>} />

@@ -4,6 +4,12 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Search snippet highlighting */
+.search-snippet strong,
+.search-snippet b {
+  @apply font-bold text-accent-teal bg-teal-50 px-1 rounded;
+}
+
 
 @layer base {
   body {
