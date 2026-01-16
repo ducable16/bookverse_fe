@@ -37,6 +37,8 @@ export const Reader = ({ book }: ReaderProps) => {
   const [currentChapterIndex, setCurrentChapterIndex] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [preloadedChapters, setPreloadedChapters] = useState<Set<number>>(new Set());
+  const [isLoadingNextChapter, setIsLoadingNextChapter] = useState(false);
 
   // UI state
   const [showSidebar, setShowSidebar] = useState(false);
@@ -66,9 +68,11 @@ export const Reader = ({ book }: ReaderProps) => {
         setLoading(true);
         setError(null);
         const chaptersData = await chaptersService.getByBook(Number(book.id));
-        setChapters(chaptersData);
+        // Sort chapters by chapterNumber to ensure correct order
+        const sortedChapters = chaptersData.sort((a, b) => a.chapterNumber - b.chapterNumber);
+        setChapters(sortedChapters);
         
-        const chapterIndex = chaptersData.findIndex(ch => ch.chapterNumber === chapterNumberFromUrl);
+        const chapterIndex = sortedChapters.findIndex(ch => ch.chapterNumber === chapterNumberFromUrl);
         setCurrentChapterIndex(chapterIndex >= 0 ? chapterIndex : 0);
       } catch (err) {
         console.error('Error fetching chapters:', err);
@@ -81,6 +85,32 @@ export const Reader = ({ book }: ReaderProps) => {
   }, [book.id, chapterNumberFromUrl]);
 
   const currentChapter = chapters[currentChapterIndex];
+
+  // Pre-load next 2-3 chapters
+  useEffect(() => {
+    const preloadNextChapters = async () => {
+      if (!currentChapter || chapters.length === 0) return;
+      
+      const nextChaptersToPreload = [];
+      for (let i = 1; i <= 3; i++) {
+        const nextIndex = currentChapterIndex + i;
+        if (nextIndex < chapters.length && !preloadedChapters.has(chapters[nextIndex].id)) {
+          nextChaptersToPreload.push(chapters[nextIndex].id);
+        }
+      }
+      
+      if (nextChaptersToPreload.length > 0) {
+        // Mark as preloaded (content is already in chapters array from initial fetch)
+        setPreloadedChapters(prev => {
+          const newSet = new Set(prev);
+          nextChaptersToPreload.forEach(id => newSet.add(id));
+          return newSet;
+        });
+      }
+    };
+    
+    preloadNextChapters();
+  }, [currentChapterIndex, currentChapter, chapters, preloadedChapters]);
 
   // Gap between columns (gap-12 = 48px)
   const columnGap = 48;
@@ -139,42 +169,56 @@ export const Reader = ({ book }: ReaderProps) => {
   const hasPrevChapter = currentChapterIndex > 0;
   const hasNextChapter = currentChapterIndex < chapters.length - 1;
 
-  const goToPrevChapter = () => {
+  const goToPrevChapter = async () => {
     if (!hasPrevChapter) return;
+    
+    setIsLoadingNextChapter(true);
     const newIndex = currentChapterIndex - 1;
+    
+    // Small delay for smooth transition
+    await new Promise(resolve => setTimeout(resolve, 100));
+    
     setCurrentChapterIndex(newIndex);
     setSearchParams({ chapter: String(chapters[newIndex].chapterNumber) });
     setCurrentPage(0);
+    setIsLoadingNextChapter(false);
   };
 
-  const goToNextChapter = () => {
+  const goToNextChapter = async () => {
     if (!hasNextChapter) return;
+    
+    setIsLoadingNextChapter(true);
     const newIndex = currentChapterIndex + 1;
+    
+    // Small delay for smooth transition
+    await new Promise(resolve => setTimeout(resolve, 100));
+    
     setCurrentChapterIndex(newIndex);
     setSearchParams({ chapter: String(chapters[newIndex].chapterNumber) });
     setCurrentPage(0);
+    setIsLoadingNextChapter(false);
   };
 
   // Navigation handlers
   // Jump by number of pages displayed at once (1 or 2)
-  const goToPrevPage = () => {
+  const goToPrevPage = async () => {
     const jump = settings.pagesPerView;
     if (currentPage > 0) {
       setCurrentPage(prev => Math.max(0, prev - jump));
     } else if (hasPrevChapter) {
       // At first page, go to previous chapter
-      goToPrevChapter();
+      await goToPrevChapter();
     }
   };
 
-  const goToNextPage = () => {
+  const goToNextPage = async () => {
     const jump = settings.pagesPerView;
     const maxPage = totalPages - settings.pagesPerView;
     if (currentPage < maxPage) {
       setCurrentPage(prev => Math.min(maxPage, prev + jump));
     } else if (hasNextChapter) {
       // At last page, go to next chapter
-      goToNextChapter();
+      await goToNextChapter();
     }
   };
 
@@ -290,7 +334,17 @@ export const Reader = ({ book }: ReaderProps) => {
         </button>
 
         {/* Content Container */}
-        <div ref={containerRef} className="max-w-6xl w-full h-full overflow-hidden">
+        <div ref={containerRef} className="max-w-6xl w-full h-full overflow-hidden relative">
+          {/* Loading overlay when switching chapters */}
+          {isLoadingNextChapter && (
+            <div className="absolute inset-0 bg-black/5 backdrop-blur-sm flex items-center justify-center z-20">
+              <div className="text-center">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-accent-teal mx-auto mb-2"></div>
+                <p className="text-sm opacity-70">Đang chuyển chương...</p>
+              </div>
+            </div>
+          )}
+          
           {/* Content Area with 2 Columns */}
           <div 
             ref={contentRef}
@@ -313,6 +367,13 @@ export const Reader = ({ book }: ReaderProps) => {
               dangerouslySetInnerHTML={{ __html: currentChapter.content }}
             />
           </div>
+          
+          {/* Chapter end indicator */}
+          {currentPage >= totalPages - 2 && hasNextChapter && (
+            <div className="absolute bottom-4 right-4 bg-accent-teal/10 backdrop-blur-sm px-4 py-2 rounded-full text-xs font-medium">
+              Chương tiếp: {chapters[currentChapterIndex + 1]?.title}
+            </div>
+          )}
         </div>
 
         {/* Next Page Button */}
@@ -335,11 +396,16 @@ export const Reader = ({ book }: ReaderProps) => {
         settings.theme === 'sepia' ? 'bg-amber-100 border-amber-200' :
         'bg-white border-gray-200'
       }`}>
-        <div className="text-sm font-medium">
-          {settings.pagesPerView === 2 && currentPage + 1 < totalPages
-            ? `${currentPage + 1}-${Math.min(currentPage + 2, totalPages)}/${totalPages}`
-            : `${currentPage + 1}/${totalPages}`
-          }
+        <div className="flex items-center justify-center space-x-4">
+          <div className="text-xs opacity-60">
+            Chương {currentChapter.chapterNumber}/{chapters.length}
+          </div>
+          <div className="text-sm font-medium">
+            {settings.pagesPerView === 2 && currentPage + 1 < totalPages
+              ? `${currentPage + 1}-${Math.min(currentPage + 2, totalPages)}/${totalPages}`
+              : `${currentPage + 1}/${totalPages}`
+            }
+          </div>
         </div>
       </footer>
     </div>
