@@ -1,26 +1,24 @@
 import { Link, useLocation } from 'react-router-dom';
 import { 
-  LayoutDashboard, 
   Users, 
   BookOpen, 
   PenTool,
   ChevronLeft,
   Settings,
-  LogOut,
-  Edit3
+  LogOut
 } from 'lucide-react';
 import { cn } from '@/features/shared/utils/cn';
+import { useAuth } from '@/contexts/AuthContext';
 
 const navItems = [
-  { icon: LayoutDashboard, path: '/admin', label: 'Dashboard' },
   { icon: Users, path: '/admin/users', label: 'Quản lý người dùng' },
   { icon: BookOpen, path: '/admin/books', label: 'Quản lý sách' },
   { icon: PenTool, path: '/admin/authors', label: 'Quản lý tác giả' },
-  { icon: Edit3, path: '/admin/editor', label: 'Tiptap Editor' },
 ];
 
 export const AdminSidebar = () => {
   const location = useLocation();
+  const { logout } = useAuth();
 
   return (
     <aside className="fixed left-0 top-0 h-screen w-64 bg-gray-900 text-white flex flex-col z-40">
@@ -42,7 +40,7 @@ export const AdminSidebar = () => {
         {navItems.map((item) => {
           const Icon = item.icon;
           const isActive = location.pathname === item.path || 
-            (item.path !== '/admin' && location.pathname.startsWith(item.path));
+            location.pathname.startsWith(item.path + '/');
           
           return (
             <Link
@@ -78,7 +76,10 @@ export const AdminSidebar = () => {
           <ChevronLeft className="w-5 h-5" />
           <span className="font-medium">Về trang chủ</span>
         </Link>
-        <button className="w-full flex items-center space-x-3 px-4 py-3 rounded-lg text-red-400 hover:bg-gray-800 transition-colors">
+        <button 
+          onClick={logout}
+          className="w-full flex items-center space-x-3 px-4 py-3 rounded-lg text-red-400 hover:bg-gray-800 transition-colors"
+        >
           <LogOut className="w-5 h-5" />
           <span className="font-medium">Đăng xuất</span>
         </button>

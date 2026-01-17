@@ -11,7 +11,7 @@ const mapApiAuthorToLocal = (apiAuthor: ApiAuthor): Author => ({
   name: apiAuthor.name,
   bio: apiAuthor.biography || '',
   avatar: apiAuthor.avatarUrl || undefined,
-  booksCount: 0,
+  booksCount: apiAuthor.bookCount || 0,
   createdAt: new Date().toISOString().split('T')[0],
 });
 

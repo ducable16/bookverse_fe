@@ -1,4 +1,5 @@
-import { Bell, Search } from 'lucide-react';
+import { Bell, Search, User } from 'lucide-react';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface AdminHeaderProps {
   title: string;
@@ -6,6 +7,8 @@ interface AdminHeaderProps {
 }
 
 export const AdminHeader = ({ title, subtitle }: AdminHeaderProps) => {
+  const { user } = useAuth();
+
   return (
     <header className="bg-white border-b border-gray-200 px-8 py-4">
       <div className="flex items-center justify-between">
@@ -33,14 +36,12 @@ export const AdminHeader = ({ title, subtitle }: AdminHeaderProps) => {
 
           {/* Admin Profile */}
           <div className="flex items-center space-x-3 pl-4 border-l border-gray-200">
-            <img 
-              src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&h=100&fit=crop&crop=face"
-              alt="Admin"
-              className="w-10 h-10 rounded-full object-cover"
-            />
+            <div className="w-10 h-10 rounded-full bg-coral-100 flex items-center justify-center">
+              <User className="w-6 h-6 text-coral-600" />
+            </div>
             <div>
-              <div className="font-medium text-gray-900">Harleen Quinzel</div>
-              <div className="text-xs text-gray-500">Admin</div>
+              <div className="font-medium text-gray-900">{user?.username || 'Admin'}</div>
+              <div className="text-xs text-gray-500 capitalize">{user?.role || 'Admin'}</div>
             </div>
           </div>
         </div>

@@ -61,6 +61,7 @@ export interface Author {
     name: string;
     biography?: string;
     avatarUrl?: string;
+    bookCount?: number;
 }
 
 export interface AuthorResponse {
