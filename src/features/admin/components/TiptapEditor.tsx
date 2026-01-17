@@ -31,6 +31,10 @@ import {
   Image as ImageIcon,
   Code2,
   Highlighter,
+  Indent,
+  Outdent,
+  Wand2,
+  Eraser,
 } from 'lucide-react';
 import { useState } from 'react';
 import './tiptap-styles.css';
@@ -96,6 +100,42 @@ export const TiptapEditor = ({
       attributes: {
         class: 'prose prose-sm sm:prose lg:prose-lg xl:prose-xl focus:outline-none max-w-none',
       },
+      handleKeyDown: (view, event) => {
+        // Handle Tab key for indentation
+        if (event.key === 'Tab') {
+          event.preventDefault();
+          
+          const { state, dispatch } = view;
+          const { selection } = state;
+          
+          if (event.shiftKey) {
+            // Shift+Tab: Remove indentation (6 spaces or 1 tab)
+            const { from } = selection;
+            const textBefore = state.doc.textBetween(Math.max(0, from - 6), from);
+            
+            // Check if there are spaces or tab to remove
+            if (textBefore === '      ' || textBefore.endsWith('\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0')) {
+              // Remove 6 spaces
+              const tr = state.tr.delete(from - 6, from);
+              dispatch(tr);
+              return true;
+            } else if (textBefore.endsWith('\t')) {
+              // Remove tab character
+              const tr = state.tr.delete(from - 1, from);
+              dispatch(tr);
+              return true;
+            }
+            return true;
+          } else {
+            // Tab: Insert 6 spaces (non-breaking spaces for better HTML rendering)
+            const tab = '\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0';
+            const tr = state.tr.insertText(tab, selection.from, selection.to);
+            dispatch(tr);
+            return true;
+          }
+        }
+        return false;
+      },
     },
   });
 
@@ -121,6 +161,118 @@ export const TiptapEditor = ({
   const removeLink = () => {
     editor.chain().focus().unsetLink().run();
     setShowLinkInput(false);
+  };
+
+  const handleIndent = () => {
+    if (!editor) return;
+    const tab = '\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0';
+    editor.chain().focus().insertContent(tab).run();
+  };
+
+  const handleOutdent = () => {
+    if (!editor) return;
+    const { state, dispatch } = editor.view;
+    const { selection } = state;
+    const { from } = selection;
+    const textBefore = state.doc.textBetween(Math.max(0, from - 6), from);
+    
+    if (textBefore === '      ' || textBefore.endsWith('\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0')) {
+      const tr = state.tr.delete(from - 6, from);
+      dispatch(tr);
+    } else if (textBefore.endsWith('\t')) {
+      const tr = state.tr.delete(from - 1, from);
+      dispatch(tr);
+    }
+  };
+
+  const handleBeautify = () => {
+    if (!editor) return;
+    
+    const { state, dispatch } = editor.view;
+    const { doc } = state;
+    
+    // Thu thập tất cả nodes cần modify
+    const nodesToModify: Array<{ node: any; pos: number }> = [];
+    doc.descendants((node, pos) => {
+      if (node.type.name === 'paragraph' || 
+          node.type.name === 'heading' || 
+          node.type.name === 'listItem') {
+        const textContent = node.textContent;
+        const trimmedContent = textContent.replace(/^[\s\u00A0]+/, '');
+        if (trimmedContent.length > 0 && trimmedContent !== textContent) {
+          nodesToModify.push({ node, pos });
+        } else if (trimmedContent.length > 0 && !textContent.startsWith('\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0')) {
+          // Node chưa có indent
+          nodesToModify.push({ node, pos });
+        }
+      }
+      return true;
+    });
+    
+    // Apply changes từ cuối lên đầu để tránh position shifting
+    let tr = state.tr;
+    for (let i = nodesToModify.length - 1; i >= 0; i--) {
+      const { node, pos } = nodesToModify[i];
+      const textContent = node.textContent;
+      const trimmedContent = textContent.replace(/^[\s\u00A0]+/, '');
+      
+      if (trimmedContent.length > 0) {
+        const indent = '\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0';
+        const newContent = indent + trimmedContent;
+        const from = pos + 1;
+        const to = pos + 1 + textContent.length;
+        
+        if (textContent.length > 0) {
+          tr = tr.replaceWith(from, to, state.schema.text(newContent));
+        } else {
+          tr = tr.insertText(newContent, from);
+        }
+      }
+    }
+    
+    if (tr.docChanged) {
+      dispatch(tr);
+    }
+  };
+
+  const handleClearIndent = () => {
+    if (!editor) return;
+    
+    const { state, dispatch } = editor.view;
+    const { doc } = state;
+    
+    // Thu thập tất cả nodes cần modify
+    const nodesToModify: Array<{ node: any; pos: number }> = [];
+    doc.descendants((node, pos) => {
+      if (node.type.name === 'paragraph' || 
+          node.type.name === 'heading' || 
+          node.type.name === 'listItem') {
+        const textContent = node.textContent;
+        const trimmedContent = textContent.replace(/^[\s\u00A0]+/, '');
+        if (trimmedContent !== textContent && trimmedContent.length > 0) {
+          nodesToModify.push({ node, pos });
+        }
+      }
+      return true;
+    });
+    
+    // Apply changes từ cuối lên đầu
+    let tr = state.tr;
+    for (let i = nodesToModify.length - 1; i >= 0; i--) {
+      const { node, pos } = nodesToModify[i];
+      const textContent = node.textContent;
+      const trimmedContent = textContent.replace(/^[\s\u00A0]+/, '');
+      
+      if (trimmedContent.length > 0) {
+        const from = pos + 1;
+        const to = pos + 1 + textContent.length;
+        tr = tr.replaceWith(from, to, state.schema.text(trimmedContent));
+      }
+    }
+    
+    if (tr.docChanged) {
+      dispatch(tr);
+    }
   };
 
   return (
@@ -260,6 +412,46 @@ export const TiptapEditor = ({
             title="Align Right"
           >
             <AlignRight className="w-4 h-4" />
+          </button>
+        </div>
+
+        {/* Indent/Outdent */}
+        <div className="flex items-center border-r border-gray-300 pr-2 mr-2">
+          <button
+            type="button"
+            onClick={handleOutdent}
+            className="p-2 rounded hover:bg-gray-100"
+            title="Outdent (Shift+Tab)"
+          >
+            <Outdent className="w-4 h-4" />
+          </button>
+          <button
+            type="button"
+            onClick={handleIndent}
+            className="p-2 rounded hover:bg-gray-100"
+            title="Indent (Tab)"
+          >
+            <Indent className="w-4 h-4" />
+          </button>
+        </div>
+
+        {/* Beautify & Clear */}
+        <div className="flex items-center border-r border-gray-300 pr-2 mr-2">
+          <button
+            type="button"
+            onClick={handleBeautify}
+            className="p-2 rounded hover:bg-gray-100"
+            title="Beautify - Thụt lề đồng nhất (6 spaces)"
+          >
+            <Wand2 className="w-4 h-4" />
+          </button>
+          <button
+            type="button"
+            onClick={handleClearIndent}
+            className="p-2 rounded hover:bg-gray-100"
+            title="Clear Indent - Loại bỏ thụt lề"
+          >
+            <Eraser className="w-4 h-4" />
           </button>
         </div>
 

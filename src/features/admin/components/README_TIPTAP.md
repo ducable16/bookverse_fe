@@ -37,7 +37,13 @@ Tiptap Editor là một editor WYSIWYG (What You See Is What You Get) mạnh m�
 - Images (thêm qua URL)
 - Links (tạo, chỉnh sửa, xóa)
 
-### 6. Interactive Menus
+### 6. Content Formatting
+- **Beautify** - Tự động thụt lề đồng nhất cho toàn bộ nội dung (6 spaces)
+- **Clear Indent** - Loại bỏ tất cả thụt lề
+- **Tab** - Thụt lề thủ công (6 spaces)
+- **Shift+Tab** - Lùi lề thủ công (6 spaces)
+
+### 7. Interactive Menus
 
 #### 🎈 Bubble Menu
 - Xuất hiện khi bạn **select text**
@@ -54,7 +60,7 @@ Tiptap Editor là một editor WYSIWYG (What You See Is What You Get) mạnh m�
 - Sticky position (dính trên đầu khi scroll)
 - Bao gồm tất cả tính năng format
 
-### 7. Actions
+### 8. Actions
 - Undo (Ctrl+Z)
 - Redo (Ctrl+Shift+Z)
 
@@ -157,6 +163,8 @@ function ChapterForm() {
 | `Ctrl + Shift + 7` | Ordered List |
 | `Ctrl + Shift + 8` | Bullet List |
 | `Ctrl + Shift + 9` | Blockquote |
+| `Tab` | Indent (thụt lề vào 6 khoảng trắng) |
+| `Shift + Tab` | Outdent (lùi lề ra 6 khoảng trắng) |
 | `Ctrl + Z` | Undo |
 | `Ctrl + Shift + Z` | Redo |
 
@@ -213,6 +221,19 @@ File CSS nằm tại: `src/features/admin/components/tiptap-styles.css`
   content={chapter.content}
   editable={false}
 />
+```
+
+### 5. Format Pasted Content
+```tsx
+// Người dùng paste nội dung từ nguồn khác vào editor
+// Sau đó click nút Beautify trên toolbar để format lại với indent đồng nhất
+<TiptapEditor
+  content={pastedContent}
+  onChange={handleChange}
+  placeholder="Paste nội dung và click Beautify..."
+/>
+// Nhấn nút Beautify (icon đũa phép) để thêm indent 6 spaces cho tất cả đoạn
+// Nhấn nút Clear Indent (icon tẩy) để loại bỏ tất cả indent
 ```
 
 ## 💡 Best Practices
