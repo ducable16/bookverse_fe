@@ -86,6 +86,11 @@ export const Reader = ({ book }: ReaderProps) => {
 
   const currentChapter = chapters[currentChapterIndex];
 
+  // Calculate chapter reading progress
+  const chapterProgress = totalPages > 0
+    ? Math.min(100, Math.round(((currentPage + settings.pagesPerView) / totalPages) * 100))
+    : 0;
+
   // Gap between columns (gap-12 = 48px)
   const columnGap = 48;
 
@@ -296,15 +301,14 @@ export const Reader = ({ book }: ReaderProps) => {
                   setSearchParams({ chapter: String(chapter.chapterNumber) });
                   setShowSidebar(false);
                 }}
-                className={`w-full text-left px-4 py-3 rounded-lg transition-colors ${
-                  currentChapterIndex === index
+                className={`w-full text-left px-4 py-3 rounded-lg transition-colors ${currentChapterIndex === index
                     ? 'bg-accent-teal text-white'
                     : settings.theme === 'dark'
-                    ? 'hover:bg-gray-700'
-                    : settings.theme === 'sepia'
-                    ? 'hover:bg-amber-100'
-                    : 'hover:bg-cream-200'
-                }`}
+                      ? 'hover:bg-gray-700'
+                      : settings.theme === 'sepia'
+                        ? 'hover:bg-amber-100'
+                        : 'hover:bg-cream-200'
+                  }`}
               >
                 <div className="font-medium">
                   Chương {chapter.chapterNumber}
@@ -328,11 +332,11 @@ export const Reader = ({ book }: ReaderProps) => {
         )}
       </ReaderSidebar>
 
-  {/* Header */ }
-  < header className = {`flex-none px-6 py-4 flex items-center justify-between border-b ${settings.theme === 'dark' ? 'bg-gray-800 border-gray-700' :
-    settings.theme === 'sepia' ? 'bg-amber-100 border-amber-200' :
-      'bg-white border-gray-200'
-    }`}>
+      {/* Header */}
+      < header className={`flex-none px-6 py-4 flex items-center justify-between border-b ${settings.theme === 'dark' ? 'bg-gray-800 border-gray-700' :
+        settings.theme === 'sepia' ? 'bg-amber-100 border-amber-200' :
+          'bg-white border-gray-200'
+        }`}>
         <div className="flex items-center gap-4 flex-1 min-w-0">
           <button
             onClick={() => navigate(`/book/${book.id}`)}
@@ -379,82 +383,87 @@ export const Reader = ({ book }: ReaderProps) => {
         </div>
       </header >
 
-  {/* Main Content */ }
-  < main className = "flex-1 overflow-hidden relative flex items-center justify-center p-8" >
-    {/* Previous Page Button */ }
-    < button
-onClick = { goToPrevPage }
-disabled = { currentPage === 0 && !hasPrevChapter}
-className = {`absolute left-8 top-1/2 -translate-y-1/2 z-10 p-3 rounded-full transition-all ${currentPage > 0 || hasPrevChapter
-  ? 'hover:bg-black/5 cursor-pointer'
-  : 'opacity-30 cursor-not-allowed'
-  }`}
+      {/* Main Content */}
+      < main className="flex-1 overflow-hidden relative flex items-center justify-center p-8" >
+        {/* Previous Page Button */}
+        < button
+          onClick={goToPrevPage}
+          disabled={currentPage === 0 && !hasPrevChapter}
+          className={`absolute left-8 top-1/2 -translate-y-1/2 z-10 p-3 rounded-full transition-all ${currentPage > 0 || hasPrevChapter
+            ? 'hover:bg-black/5 cursor-pointer'
+            : 'opacity-30 cursor-not-allowed'
+            }`}
         >
-  <ChevronLeft className="w-8 h-8" />
+          <ChevronLeft className="w-8 h-8" />
         </button >
 
-  {/* Content Container */ }
-  < div ref = { containerRef } className = "max-w-6xl w-full h-full overflow-hidden relative" >
-    {/* Content Area with 2 Columns */ }
-    < div
-ref = { contentRef }
-className = {`h-full ${settings.pagesPerView === 2 ? 'columns-2 gap-12' : 'columns-1'
-  }`}
-style = {{
-  fontSize: `${scaledFontSize}px`,
-    fontFamily: settings.fontFamily,
-      lineHeight: settings.lineHeight,
-        columnFill: 'auto',
-          columnWidth: `${columnWidth}px`,
-            columnGap: `${columnGap}px`,
+        {/* Content Container */}
+        < div ref={containerRef} className="max-w-6xl w-full h-full overflow-hidden relative" >
+          {/* Content Area with 2 Columns */}
+          < div
+            ref={contentRef}
+            className={`h-full ${settings.pagesPerView === 2 ? 'columns-2 gap-12' : 'columns-1'
+              }`}
+            style={{
+              fontSize: `${scaledFontSize}px`,
+              fontFamily: settings.fontFamily,
+              lineHeight: settings.lineHeight,
+              columnFill: 'auto',
+              columnWidth: `${columnWidth}px`,
+              columnGap: `${columnGap}px`,
               transform: `translateX(-${currentPage * (columnWidth + columnGap)}px)`,
             }}
           >
-  <div
-    className="prose prose-lg max-w-none"
-    dangerouslySetInnerHTML={{ __html: currentChapter.content }}
-  />
+            <div
+              className="prose prose-lg max-w-none"
+              dangerouslySetInnerHTML={{ __html: currentChapter.content }}
+            />
           </div >
 
-  {/* Chapter end indicator */ }
-{
-  currentPage >= totalPages - 2 && hasNextChapter && (
-    <div className="absolute bottom-4 right-4 bg-accent-teal/10 backdrop-blur-sm px-4 py-2 rounded-full text-xs font-medium">
-      Chương tiếp: {chapters[currentChapterIndex + 1]?.title}
-    </div>
-  )
-}
+          {/* Chapter end indicator */}
+          {
+            currentPage >= totalPages - 2 && hasNextChapter && (
+              <div className="absolute bottom-4 right-4 bg-accent-teal/10 backdrop-blur-sm px-4 py-2 rounded-full text-xs font-medium">
+                Chương tiếp: {chapters[currentChapterIndex + 1]?.title}
+              </div>
+            )
+          }
         </div >
 
-  {/* Next Page Button */ }
-  < button
-onClick = { goToNextPage }
-disabled = { currentPage >= totalPages - settings.pagesPerView && !hasNextChapter}
-className = {`absolute right-8 top-1/2 -translate-y-1/2 z-10 p-3 rounded-full transition-all ${currentPage < totalPages - settings.pagesPerView || hasNextChapter
-  ? 'hover:bg-black/5 cursor-pointer'
-  : 'opacity-30 cursor-not-allowed'
-  }`}
+        {/* Next Page Button */}
+        < button
+          onClick={goToNextPage}
+          disabled={currentPage >= totalPages - settings.pagesPerView && !hasNextChapter}
+          className={`absolute right-8 top-1/2 -translate-y-1/2 z-10 p-3 rounded-full transition-all ${currentPage < totalPages - settings.pagesPerView || hasNextChapter
+            ? 'hover:bg-black/5 cursor-pointer'
+            : 'opacity-30 cursor-not-allowed'
+            }`}
         >
-  <ChevronRight className="w-8 h-8" />
+          <ChevronRight className="w-8 h-8" />
         </button >
       </main >
 
-  {/* Footer */ }
-  < footer className = {`flex-none py-4 text-center border-t ${settings.theme === 'dark' ? 'bg-gray-800 border-gray-700' :
-    settings.theme === 'sepia' ? 'bg-amber-100 border-amber-200' :
-      'bg-white border-gray-200'
-    }`}>
-      <div className="flex items-center justify-center space-x-4">
-        <div className="text-xs opacity-60">
-          Chương {currentChapter.chapterNumber}/{chapters.length}
+      {/* Footer */}
+      < footer className={`flex-none py-4 text-center border-t ${settings.theme === 'dark' ? 'bg-gray-800 border-gray-700' :
+        settings.theme === 'sepia' ? 'bg-amber-100 border-amber-200' :
+          'bg-white border-gray-200'
+        }`}>
+        <div className="flex items-center justify-center space-x-3">
+          <div className="text-xs opacity-60">
+            Chương {currentChapter.chapterNumber}/{chapters.length}
+          </div>
+          <div className="text-xs opacity-40">•</div>
+          <div className="text-sm font-medium">
+            {settings.pagesPerView === 2 && currentPage + 1 < totalPages
+              ? `${currentPage + 1}-${Math.min(currentPage + 2, totalPages)}/${totalPages}`
+              : `${currentPage + 1}/${totalPages}`
+            }
+          </div>
+          <div className="text-xs opacity-40">•</div>
+          <div className="text-sm font-medium text-accent-teal">
+            {chapterProgress}% chương này
+          </div>
         </div>
-        <div className="text-sm font-medium">
-          {settings.pagesPerView === 2 && currentPage + 1 < totalPages
-            ? `${currentPage + 1}-${Math.min(currentPage + 2, totalPages)}/${totalPages}`
-            : `${currentPage + 1}/${totalPages}`
-          }
-        </div>
-      </div>
       </footer >
     </div >
   );
