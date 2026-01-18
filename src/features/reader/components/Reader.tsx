@@ -12,13 +12,13 @@ interface ReaderProps {
 }
 
 const READER_FONTS = [
-  { name: 'Be Vietnam Pro', value: "'Be Vietnam Pro', sans-serif", category: 'Sans-serif' },
-  { name: 'Noto Serif', value: "'Noto Serif', serif", category: 'Serif' },
-  { name: 'Merriweather', value: "'Merriweather', serif", category: 'Serif' },
-  { name: 'Lora', value: "'Lora', serif", category: 'Serif' },
-  { name: 'Inter', value: "'Inter', sans-serif", category: 'Sans-serif' },
-  { name: 'Roboto', value: "'Roboto', sans-serif", category: 'Sans-serif' },
-  { name: 'Noto Sans', value: "'Noto Sans', sans-serif", category: 'Sans-serif' },
+  { name: 'Be Vietnam Pro', value: "'Be Vietnam Pro', sans-serif", category: 'Sans-serif', scale: 1.0 },
+  { name: 'Noto Serif', value: "'Noto Serif', serif", category: 'Serif', scale: 0.95 },
+  { name: 'Merriweather', value: "'Merriweather', serif", category: 'Serif', scale: 0.90 },
+  { name: 'Lora', value: "'Lora', serif", category: 'Serif', scale: 0.92 },
+  { name: 'Inter', value: "'Inter', sans-serif", category: 'Sans-serif', scale: 1.0 },
+  { name: 'Roboto', value: "'Roboto', sans-serif", category: 'Sans-serif', scale: 1.05 },
+  { name: 'Noto Sans', value: "'Noto Sans', sans-serif", category: 'Sans-serif', scale: 1.0 },
 ];
 
 const THEME_CLASSES = {
@@ -144,6 +144,11 @@ export const Reader = ({ book }: ReaderProps) => {
     return () => resizeObserver.disconnect();
   }, [settings.pagesPerView, currentChapter]);
 
+  // Reset to first page when chapter changes
+  useEffect(() => {
+    setCurrentPage(0);
+  }, [currentChapter?.id]);
+
   // Calculate total pages after content renders
   // Note: Each column = 1 page, so total pages = total columns
   useEffect(() => {
@@ -158,12 +163,12 @@ export const Reader = ({ book }: ReaderProps) => {
       const totalColumns = Math.max(1, Math.ceil(scrollWidth / columnWidth));
       setTotalPages(totalColumns);
       
-      // Reset to first page when chapter changes
-      setCurrentPage(0);
+      // Adjust current page if it exceeds new total pages
+      setCurrentPage(prev => Math.min(prev, Math.max(0, totalColumns - settings.pagesPerView)));
     }, 100);
 
     return () => clearTimeout(timer);
-  }, [currentChapter?.id, columnWidth, settings.fontSize, settings.fontFamily, settings.lineHeight]);
+  }, [currentChapter?.id, columnWidth, settings.fontSize, settings.fontFamily, settings.lineHeight, settings.pagesPerView]);
 
   // Chapter navigation
   const hasPrevChapter = currentChapterIndex > 0;
@@ -262,6 +267,11 @@ export const Reader = ({ book }: ReaderProps) => {
 
   const themeClasses = THEME_CLASSES[settings.theme];
 
+  // Find current font and apply scaling for visual size normalization
+  const currentFont = READER_FONTS.find(f => f.value === settings.fontFamily);
+  const fontScale = currentFont?.scale || 1.0;
+  const scaledFontSize = settings.fontSize * fontScale;
+
   return (
     <div className={`h-screen w-screen overflow-hidden flex flex-col ${themeClasses.bg} ${themeClasses.text}`}>
       {/* Sidebar */}
@@ -352,7 +362,7 @@ export const Reader = ({ book }: ReaderProps) => {
               settings.pagesPerView === 2 ? 'columns-2 gap-12' : 'columns-1'
             }`}
             style={{
-              fontSize: `${settings.fontSize}px`,
+              fontSize: `${scaledFontSize}px`,
               fontFamily: settings.fontFamily,
               lineHeight: settings.lineHeight,
               columnFill: 'auto',

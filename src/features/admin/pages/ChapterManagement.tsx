@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import toast from 'react-hot-toast';
 import { AdminHeader } from '../components/AdminHeader';
 import { TiptapEditor } from '../components/TiptapEditor';
 import { Plus, Edit2, Trash2, ChevronLeft, X, BookOpen } from 'lucide-react';
@@ -58,10 +59,10 @@ export const ChapterManagement = () => {
       setOperationLoading(true);
       await chaptersService.delete(chapterId);
       await fetchData(); // Refresh list
-      alert('Xóa chapter thành công!');
+      toast.success('Xóa chapter thành công!');
     } catch (err) {
       console.error('Error deleting chapter:', err);
-      alert('Không thể xóa chapter. Vui lòng thử lại.');
+      toast.error('Không thể xóa chapter. Vui lòng thử lại.');
     } finally {
       setOperationLoading(false);
     }
@@ -78,10 +79,10 @@ export const ChapterManagement = () => {
 
       if (editingChapter) {
         await chaptersService.update(editingChapter.id, chapterData);
-        alert('Cập nhật chapter thành công!');
+        toast.success('Cập nhật chapter thành công!');
       } else {
         await chaptersService.create(chapterData);
-        alert('Thêm chapter thành công!');
+        toast.success('Thêm chapter thành công!');
       }
 
       await fetchData(); // Refresh list
@@ -89,7 +90,7 @@ export const ChapterManagement = () => {
       setEditingChapter(null);
     } catch (err) {
       console.error('Error saving chapter:', err);
-      alert('Không thể lưu chapter. Vui lòng thử lại.');
+      toast.error('Không thể lưu chapter. Vui lòng thử lại.');
     } finally {
       setOperationLoading(false);
     }
@@ -291,12 +292,12 @@ const ChapterModal = ({ chapter, bookId, onClose, onSave, loading, nextChapterNu
     e.preventDefault();
 
     if (!formData.title.trim()) {
-      alert('Vui lòng nhập tiêu đề chapter');
+      toast.error('Vui lòng nhập tiêu đề chapter');
       return;
     }
 
     if (!formData.content.trim() || formData.content === '<p></p>') {
-      alert('Vui lòng nhập nội dung chapter');
+      toast.error('Vui lòng nhập nội dung chapter');
       return;
     }
 

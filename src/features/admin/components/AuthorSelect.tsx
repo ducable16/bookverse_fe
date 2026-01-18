@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
+import toast from 'react-hot-toast';
 import { Search, Plus, X, Check, Upload } from 'lucide-react';
 import { Author } from '../types';
 import { authorsService } from '@/services';
@@ -224,7 +225,7 @@ const AddAuthorModal = ({ defaultName, onClose, onSave }: AddAuthorModalProps) =
     if (file) {
       // Validate file size (5MB)
       if (file.size > 5 * 1024 * 1024) {
-        alert('File quá lớn! Vui lòng chọn file nhỏ hơn 5MB');
+        toast.error('File quá lớn! Vui lòng chọn file nhỏ hơn 5MB');
         return;
       }
 

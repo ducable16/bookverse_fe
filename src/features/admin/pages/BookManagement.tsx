@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import toast from 'react-hot-toast';
 import { AdminHeader } from '../components/AdminHeader';
 import { Plus, Edit2, Trash2, Search, Filter, Eye, Upload, X, BookOpen } from 'lucide-react';
 import { AdminBook, Author } from '../types';
@@ -94,10 +95,10 @@ export const BookManagement = () => {
       setOperationLoading(true);
       await booksService.delete(Number(id));
       await fetchBooks(); // Refresh list
-      alert('Xóa sách thành công!');
+      toast.success('Xóa sách thành công!');
     } catch (err) {
       console.error('Error deleting book:', err);
-      alert('Không thể xóa sách. Vui lòng thử lại.');
+      toast.error('Không thể xóa sách. Vui lòng thử lại.');
     } finally {
       setOperationLoading(false);
     }
@@ -105,7 +106,7 @@ export const BookManagement = () => {
 
   const handleCreateCategory = async () => {
     if (!newCategoryName.trim()) {
-      alert('Vui lòng nhập tên danh mục');
+      toast.error('Vui lòng nhập tên danh mục');
       return;
     }
 
@@ -124,10 +125,10 @@ export const BookManagement = () => {
       setNewCategoryName('');
       setNewCategoryDescription('');
 
-      alert('Thêm danh mục thành công!');
+      toast.success('Thêm danh mục thành công!');
     } catch (err) {
       console.error('Error creating category:', err);
-      alert('Không thể thêm danh mục. Vui lòng thử lại.');
+      toast.error('Không thể thêm danh mục. Vui lòng thử lại.');
     } finally {
       setCategoryLoading(false);
     }
@@ -148,7 +149,7 @@ export const BookManagement = () => {
         : [];
 
       if (categoryIds.length === 0) {
-        alert('Vui lòng chọn ít nhất một thể loại');
+        toast.error('Vui lòng chọn ít nhất một thể loại');
         setOperationLoading(false);
         return;
       }
@@ -166,10 +167,10 @@ export const BookManagement = () => {
 
       if (editingBook) {
         await booksService.update(Number(editingBook.id), apiBookData);
-        alert('Cập nhật sách thành công!');
+        toast.success('Cập nhật sách thành công!');
       } else {
         await booksService.create(apiBookData);
-        alert('Thêm sách thành công!');
+        toast.success('Thêm sách thành công!');
       }
 
       await fetchBooks(); // Refresh list
@@ -177,7 +178,7 @@ export const BookManagement = () => {
       setEditingBook(null);
     } catch (err) {
       console.error('Error saving book:', err);
-      alert('Không thể lưu sách. Vui lòng thử lại.');
+      toast.error('Không thể lưu sách. Vui lòng thử lại.');
     } finally {
       setOperationLoading(false);
     }
@@ -458,11 +459,11 @@ const BookModal = ({ book, categories, onClose, onSave, onAddAuthor, onAddCatego
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!formData.authorId) {
-      alert('Vui lòng chọn tác giả');
+      toast.error('Vui lòng chọn tác giả');
       return;
     }
     if (formData.genre.length === 0) {
-      alert('Vui lòng chọn ít nhất một thể loại');
+      toast.error('Vui lòng chọn ít nhất một thể loại');
       return;
     }
     onSave(formData);

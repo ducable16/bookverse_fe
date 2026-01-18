@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import toast from 'react-hot-toast';
 import { AdminHeader } from '../components/AdminHeader';
 import { TiptapEditor } from '../components/TiptapEditor';
 import { Eye, Code } from 'lucide-react';
@@ -81,7 +82,7 @@ export const EditorDemo = () => {
               <button
                 onClick={() => {
                   navigator.clipboard.writeText(content);
-                  alert('Đã copy HTML vào clipboard!');
+                  toast.success('Đã copy HTML vào clipboard!');
                 }}
                 className="text-sm text-coral-600 hover:text-coral-700 font-medium"
               >

@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import toast from 'react-hot-toast';
 import { AdminHeader } from '../components/AdminHeader';
 import { Plus, Edit2, Trash2, Search, BookOpen, Upload, X, Eye } from 'lucide-react';
 import { Author } from '../types';
@@ -72,10 +73,10 @@ export const AuthorManagement = () => {
       setOperationLoading(true);
       await authorsService.delete(Number(id));
       await fetchAuthors(); // Refresh list
-      alert('Xóa tác giả thành công!');
+      toast.success('Xóa tác giả thành công!');
     } catch (err) {
       console.error('Error deleting author:', err);
-      alert('Không thể xóa tác giả. Vui lòng thử lại.');
+      toast.error('Không thể xóa tác giả. Vui lòng thử lại.');
     } finally {
       setOperationLoading(false);
     }
@@ -98,10 +99,10 @@ export const AuthorManagement = () => {
 
       if (editingAuthor) {
         await authorsService.update(Number(editingAuthor.id), apiAuthorData);
-        alert('Cập nhật tác giả thành công!');
+        toast.success('Cập nhật tác giả thành công!');
       } else {
         await authorsService.create(apiAuthorData);
-        alert('Thêm tác giả thành công!');
+        toast.success('Thêm tác giả thành công!');
       }
 
       await fetchAuthors(); // Refresh list
@@ -109,7 +110,7 @@ export const AuthorManagement = () => {
       setEditingAuthor(null);
     } catch (err) {
       console.error('Error saving author:', err);
-      alert('Không thể lưu tác giả. Vui lòng thử lại.');
+      toast.error('Không thể lưu tác giả. Vui lòng thử lại.');
     } finally {
       setOperationLoading(false);
     }
@@ -123,7 +124,7 @@ export const AuthorManagement = () => {
       setShowBooksModal(true);
     } catch (err) {
       console.error('Error fetching author books:', err);
-      alert('Không thể tải danh sách sách của tác giả.');
+      toast.error('Không thể tải danh sách sách của tác giả.');
     } finally {
       setOperationLoading(false);
     }
