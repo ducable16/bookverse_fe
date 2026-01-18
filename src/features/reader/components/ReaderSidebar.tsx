@@ -1,4 +1,4 @@
-import { X, Type, Palette, AlignJustify, Bookmark, Highlighter, Sun, BookOpen, Moon, BookMarked } from 'lucide-react';
+import { X, Type, Palette, AlignJustify, Bookmark, Highlighter, Sun, BookOpen, Moon, BookMarked, List } from 'lucide-react';
 
 interface ReaderSettings {
   fontSize: number;
@@ -14,8 +14,8 @@ interface ReaderSidebarProps {
   settings: ReaderSettings;
   onSettingsChange: (settings: Partial<ReaderSettings>) => void;
   fonts: Array<{ name: string; value: string; category: string }>;
-  activeTab: 'settings' | 'bookmarks' | 'highlights';
-  onTabChange: (tab: 'settings' | 'bookmarks' | 'highlights') => void;
+  activeTab: 'settings' | 'bookmarks' | 'highlights' | 'chapters';
+  onTabChange: (tab: 'settings' | 'bookmarks' | 'highlights' | 'chapters') => void;
   children?: React.ReactNode;
 }
 
@@ -110,13 +110,23 @@ export const ReaderSidebar = ({
         </div>
 
         {/* Tabs */}
-        <div className={`flex border-b ${isDark ? 'border-gray-700' : isSepia ? 'border-amber-200' : 'border-gray-200'
+        <div className={`grid grid-cols-4 border-b ${isDark ? 'border-gray-700' : isSepia ? 'border-amber-200' : 'border-gray-200'
           }`}>
           <button
+            onClick={() => onTabChange('chapters')}
+            className={`flex items-center justify-center space-x-1 py-3 px-2 transition-colors ${activeTab === 'chapters'
+              ? `border-b-2 border-accent-teal ${getActiveClass()}`
+              : getHoverClass()
+              }`}
+          >
+            <List className="w-4 h-4" />
+            <span className="text-sm font-medium">Mục lục</span>
+          </button>
+          <button
             onClick={() => onTabChange('settings')}
-            className={`flex-1 flex items-center justify-center space-x-2 py-3 px-4 transition-colors ${activeTab === 'settings'
-                ? `border-b-2 border-accent-teal ${getActiveClass()}`
-                : getHoverClass()
+            className={`flex items-center justify-center space-x-1 py-3 px-2 transition-colors ${activeTab === 'settings'
+              ? `border-b-2 border-accent-teal ${getActiveClass()}`
+              : getHoverClass()
               }`}
           >
             <Type className="w-4 h-4" />
@@ -124,9 +134,9 @@ export const ReaderSidebar = ({
           </button>
           <button
             onClick={() => onTabChange('bookmarks')}
-            className={`flex-1 flex items-center justify-center space-x-2 py-3 px-4 transition-colors ${activeTab === 'bookmarks'
-                ? `border-b-2 border-accent-teal ${getActiveClass()}`
-                : getHoverClass()
+            className={`flex items-center justify-center space-x-1 py-3 px-2 transition-colors ${activeTab === 'bookmarks'
+              ? `border-b-2 border-accent-teal ${getActiveClass()}`
+              : getHoverClass()
               }`}
           >
             <Bookmark className="w-4 h-4" />
@@ -134,9 +144,9 @@ export const ReaderSidebar = ({
           </button>
           <button
             onClick={() => onTabChange('highlights')}
-            className={`flex-1 flex items-center justify-center space-x-2 py-3 px-4 transition-colors ${activeTab === 'highlights'
-                ? `border-b-2 border-accent-teal ${getActiveClass()}`
-                : getHoverClass()
+            className={`flex items-center justify-center space-x-1 py-3 px-2 transition-colors ${activeTab === 'highlights'
+              ? `border-b-2 border-accent-teal ${getActiveClass()}`
+              : getHoverClass()
               }`}
           >
             <Highlighter className="w-4 h-4" />
@@ -162,8 +172,8 @@ export const ReaderSidebar = ({
                         key={theme.value}
                         onClick={() => onSettingsChange({ theme: theme.value })}
                         className={`p-3 rounded-lg text-center transition-all ${settings.theme === theme.value
-                            ? 'bg-accent-teal text-white ring-2 ring-accent-teal'
-                            : getControlBgClass()
+                          ? 'bg-accent-teal text-white ring-2 ring-accent-teal'
+                          : getControlBgClass()
                           }`}
                       >
                         <IconComponent className="w-6 h-6 mb-1 mx-auto" />
@@ -228,8 +238,8 @@ export const ReaderSidebar = ({
                       key={lh.value}
                       onClick={() => onSettingsChange({ lineHeight: lh.value })}
                       className={`py-2 rounded-lg text-center text-sm font-medium transition-all ${settings.lineHeight === lh.value
-                          ? 'bg-accent-teal text-white'
-                          : getControlBgClass()
+                        ? 'bg-accent-teal text-white'
+                        : getControlBgClass()
                         }`}
                     >
                       {lh.label}
@@ -250,8 +260,8 @@ export const ReaderSidebar = ({
                       key={ppv.value}
                       onClick={() => onSettingsChange({ pagesPerView: ppv.value })}
                       className={`py-2 rounded-lg text-center text-sm font-medium transition-all ${settings.pagesPerView === ppv.value
-                          ? 'bg-accent-teal text-white'
-                          : getControlBgClass()
+                        ? 'bg-accent-teal text-white'
+                        : getControlBgClass()
                         }`}
                     >
                       {ppv.label}
