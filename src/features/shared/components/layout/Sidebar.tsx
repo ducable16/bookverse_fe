@@ -1,6 +1,7 @@
 import { Link, useLocation } from 'react-router-dom';
 import { Home, History, BookMarked, LayoutGrid, Settings } from 'lucide-react';
 import { cn } from '@/features/shared/utils/cn';
+import { useAuth } from '@/contexts/AuthContext';
 
 const navItems = [
   { icon: Home, path: '/', label: 'Home' },
@@ -11,6 +12,7 @@ const navItems = [
 
 export const Sidebar = () => {
   const location = useLocation();
+  const { isAdmin } = useAuth();
 
   return (
     <aside className="fixed left-0 top-0 h-screen w-20 bg-cream-50 border-r border-cream-300 flex flex-col items-center py-6 z-40">
@@ -18,10 +20,10 @@ export const Sidebar = () => {
       <Link to="/" className="mb-10">
         <div className="w-10 h-10 flex items-center justify-center">
           <svg viewBox="0 0 40 40" className="w-10 h-10 text-gray-800">
-            <rect x="8" y="4" width="24" height="32" rx="2" fill="none" stroke="currentColor" strokeWidth="2"/>
-            <path d="M12 10 L28 10" stroke="currentColor" strokeWidth="2"/>
-            <path d="M12 16 L24 16" stroke="currentColor" strokeWidth="2"/>
-            <path d="M12 22 L20 22" stroke="currentColor" strokeWidth="2"/>
+            <rect x="8" y="4" width="24" height="32" rx="2" fill="none" stroke="currentColor" strokeWidth="2" />
+            <path d="M12 10 L28 10" stroke="currentColor" strokeWidth="2" />
+            <path d="M12 16 L24 16" stroke="currentColor" strokeWidth="2" />
+            <path d="M12 22 L20 22" stroke="currentColor" strokeWidth="2" />
           </svg>
         </div>
       </Link>
@@ -31,15 +33,15 @@ export const Sidebar = () => {
         {navItems.map((item) => {
           const Icon = item.icon;
           const isActive = location.pathname === item.path;
-          
+
           return (
             <Link
               key={item.path}
               to={item.path}
               className={cn(
                 'w-12 h-12 rounded-xl flex items-center justify-center transition-all duration-200',
-                isActive 
-                  ? 'bg-coral-100 text-coral-400' 
+                isActive
+                  ? 'bg-coral-100 text-coral-400'
                   : 'text-gray-500 hover:bg-cream-200 hover:text-gray-700'
               )}
               title={item.label}
@@ -50,14 +52,16 @@ export const Sidebar = () => {
         })}
       </nav>
 
-      {/* Admin Link */}
-      <Link
-        to="/admin"
-        className="w-12 h-12 rounded-xl flex items-center justify-center text-gray-500 hover:bg-cream-200 hover:text-gray-700 transition-all duration-200 mb-4"
-        title="Admin Panel"
-      >
-        <Settings className="w-6 h-6" strokeWidth={1.5} />
-      </Link>
+      {/* Admin Link - Only show for admin users */}
+      {isAdmin && (
+        <Link
+          to="/admin"
+          className="w-12 h-12 rounded-xl flex items-center justify-center text-gray-500 hover:bg-cream-200 hover:text-gray-700 transition-all duration-200 mb-4"
+          title="Admin Panel"
+        >
+          <Settings className="w-6 h-6" strokeWidth={1.5} />
+        </Link>
+      )}
     </aside>
   );
 };

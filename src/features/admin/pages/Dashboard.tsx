@@ -100,10 +100,10 @@ export const Dashboard = () => {
                       <div className="text-sm text-gray-500">{book.authorName}</div>
                     </div>
                     <span className={`px-2 py-1 text-xs rounded-full ${book.status === 'published'
-                        ? 'bg-green-100 text-green-700'
-                        : book.status === 'draft'
-                          ? 'bg-yellow-100 text-yellow-700'
-                          : 'bg-gray-100 text-gray-700'
+                      ? 'bg-green-100 text-green-700'
+                      : book.status === 'draft'
+                        ? 'bg-yellow-100 text-yellow-700'
+                        : 'bg-gray-100 text-gray-700'
                       }`}>
                       {book.status === 'published' ? 'Đã xuất bản' :
                         book.status === 'draft' ? 'Bản nháp' : 'Lưu trữ'}
@@ -135,13 +135,10 @@ export const Dashboard = () => {
                       <div className="text-sm text-gray-500">{user.email}</div>
                     </div>
                     <span className={`px-2 py-1 text-xs rounded-full ${user.role === 'admin'
-                        ? 'bg-purple-100 text-purple-700'
-                        : user.role === 'manager'
-                          ? 'bg-blue-100 text-blue-700'
-                          : 'bg-gray-100 text-gray-700'
+                      ? 'bg-purple-100 text-purple-700'
+                      : 'bg-gray-100 text-gray-700'
                       }`}>
-                      {user.role === 'admin' ? 'Admin' :
-                        user.role === 'manager' ? 'Manager' : 'User'}
+                      {user.role === 'admin' ? 'Admin' : 'User'}
                     </span>
                   </div>
                 ))}

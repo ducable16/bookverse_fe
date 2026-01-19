@@ -24,6 +24,9 @@ import { ChapterManagement } from './features/admin/pages/ChapterManagement';
 import { Login } from './features/auth/pages/Login';
 import { Register } from './features/auth/pages/Register';
 
+// Profile imports
+import { Profile } from './features/profile/pages/Profile';
+
 function App() {
   return (
     <AuthProvider>
@@ -68,6 +71,16 @@ function App() {
           {/* Auth Routes */}
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
+
+          {/* Profile Route - Protected */}
+          <Route
+            path="/profile"
+            element={
+              <ProtectedRoute>
+                <Layout><Profile /></Layout>
+              </ProtectedRoute>
+            }
+          />
 
           {/* Unauthorized Page */}
           <Route path="/unauthorized" element={<Unauthorized />} />

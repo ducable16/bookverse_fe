@@ -1,9 +1,24 @@
 import { Link } from 'react-router-dom';
-import { BookOpen, User, LogOut, Shield } from 'lucide-react';
+import { BookOpen, User, LogOut, Shield, UserCircle, ChevronDown } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
+import { useState, useRef, useEffect } from 'react';
 
 export const Header = () => {
   const { isAuthenticated, isAdmin, user, logout } = useAuth();
+  const [showDropdown, setShowDropdown] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setShowDropdown(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
   return (
     <header className="bg-white shadow-sm sticky top-0 z-50">
@@ -15,15 +30,6 @@ export const Header = () => {
             <span>BookVerse</span>
           </Link>
 
-          {/* Navigation */}
-          <nav className="hidden md:flex items-center space-x-8">
-            <Link to="/" className="text-gray-700 hover:text-coral-600 transition-colors">
-              Trang chủ
-            </Link>
-            <Link to="/categories" className="text-gray-700 hover:text-coral-600 transition-colors">
-              Thể loại
-            </Link>
-          </nav>
 
           {/* Auth Section */}
           <div className="flex items-center space-x-4">
@@ -44,29 +50,57 @@ export const Header = () => {
               </>
             ) : (
               <>
-                <div className="flex items-center space-x-2 text-gray-700">
-                  <User className="w-5 h-5" />
-                  <span className="font-medium">{user?.username}</span>
-                </div>
-
-                {isAdmin && (
-                  <Link
-                    to="/admin"
-                    className="flex items-center space-x-1 text-coral-600 hover:text-coral-700 transition-colors font-medium"
+                {/* User Profile Dropdown */}
+                <div className="relative" ref={dropdownRef}>
+                  <button
+                    onClick={() => setShowDropdown(!showDropdown)}
+                    className="flex items-center space-x-2 text-gray-700 hover:text-coral-600 transition-colors"
                   >
-                    <Shield className="w-5 h-5" />
-                    <span>Quản trị</span>
-                  </Link>
-                )}
+                    <User className="w-5 h-5" />
+                    <span className="font-medium">{user?.username}</span>
+                    <ChevronDown className={`w-4 h-4 transition-transform ${showDropdown ? 'rotate-180' : ''}`} />
+                  </button>
 
-                <button
-                  onClick={logout}
-                  className="flex items-center space-x-1 text-gray-700 hover:text-red-600 transition-colors"
-                  title="Đăng xuất"
-                >
-                  <LogOut className="w-5 h-5" />
-                  <span className="hidden lg:inline">Đăng xuất</span>
-                </button>
+                  {/* Dropdown Menu */}
+                  {showDropdown && (
+                    <div className="absolute right-0 mt-2 w-56 bg-white rounded-lg shadow-lg border border-gray-200 py-1">
+                      <Link
+                        to="/profile"
+                        onClick={() => setShowDropdown(false)}
+                        className="flex items-center space-x-2 px-4 py-2 text-gray-700 hover:bg-gray-50 transition-colors"
+                      >
+                        <UserCircle className="w-5 h-5" />
+                        <span>Chỉnh sửa thông tin</span>
+                      </Link>
+
+                      {isAdmin && (
+                        <>
+                          <div className="border-t border-gray-100 my-1"></div>
+                          <Link
+                            to="/admin"
+                            onClick={() => setShowDropdown(false)}
+                            className="flex items-center space-x-2 px-4 py-2 text-coral-600 hover:bg-gray-50 transition-colors"
+                          >
+                            <Shield className="w-5 h-5" />
+                            <span>Quản trị</span>
+                          </Link>
+                        </>
+                      )}
+
+                      <div className="border-t border-gray-100 my-1"></div>
+                      <button
+                        onClick={() => {
+                          setShowDropdown(false);
+                          logout();
+                        }}
+                        className="w-full flex items-center space-x-2 px-4 py-2 text-red-600 hover:bg-gray-50 transition-colors"
+                      >
+                        <LogOut className="w-5 h-5" />
+                        <span>Đăng xuất</span>
+                      </button>
+                    </div>
+                  )}
+                </div>
               </>
             )}
           </div>

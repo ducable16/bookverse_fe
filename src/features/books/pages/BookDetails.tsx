@@ -155,10 +155,10 @@ export const BookDetails = () => {
           <h1 className="text-2xl font-bold text-gray-900 mb-6">{book.title}</h1>
 
           {/* Meta Info */}
-          <div className="grid grid-cols-3 gap-6 py-4 border-b border-gray-200 mb-6">
+          <div className="grid grid-cols-2 gap-6 py-4 border-b border-gray-200 mb-6">
             <div>
               <div className="text-sm text-gray-500 mb-1">Tác giả</div>
-              <Link 
+              <Link
                 to={`/search?author=${book.author.id}`}
                 className="font-medium text-accent-teal hover:text-teal-600 hover:underline"
               >
@@ -168,7 +168,7 @@ export const BookDetails = () => {
             <div>
               <div className="text-sm text-gray-500 mb-1">Thể loại</div>
               {book.categories && book.categories.length > 0 ? (
-                <Link 
+                <Link
                   to={`/search?category=${book.categories[0].id}`}
                   className="font-medium text-accent-teal hover:text-teal-600 hover:underline"
                 >
@@ -177,10 +177,6 @@ export const BookDetails = () => {
               ) : (
                 <span className="font-medium text-gray-900">Unknown</span>
               )}
-            </div>
-            <div>
-              <div className="text-sm text-gray-500 mb-1">Năm xuất bản</div>
-              <div className="font-medium text-gray-900">{book.publishedYear}</div>
             </div>
           </div>
 

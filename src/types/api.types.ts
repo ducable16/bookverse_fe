@@ -37,6 +37,7 @@ export interface User {
     email: string;
     fullName: string;
     role: string;
+    avatarUrl?: string;
 }
 
 export interface UserResponse {
@@ -45,6 +46,7 @@ export interface UserResponse {
     fullName: string;
     email: string;
     avatarUrl?: string;
+    role: string;
 }
 
 export interface UserUpdateRequest {

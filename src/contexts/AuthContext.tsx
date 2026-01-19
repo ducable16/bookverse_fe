@@ -105,7 +105,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     const value: AuthContextType = {
         user,
         isAuthenticated: !!user,
-        isAdmin: user?.role === 'ADMIN',
+        isAdmin: user?.role === 'ADMIN' || user?.role === 'ROLE_ADMIN',
         loading,
         login,
         register,

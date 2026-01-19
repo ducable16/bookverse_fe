@@ -1,10 +1,9 @@
 import { Link, useLocation } from 'react-router-dom';
-import { 
-  Users, 
-  BookOpen, 
+import {
+  Users,
+  BookOpen,
   PenTool,
   ChevronLeft,
-  Settings,
   LogOut
 } from 'lucide-react';
 import { cn } from '@/features/shared/utils/cn';
@@ -39,17 +38,17 @@ export const AdminSidebar = () => {
       <nav className="flex-1 py-6 px-4 space-y-1">
         {navItems.map((item) => {
           const Icon = item.icon;
-          const isActive = location.pathname === item.path || 
+          const isActive = location.pathname === item.path ||
             location.pathname.startsWith(item.path + '/');
-          
+
           return (
             <Link
               key={item.path}
               to={item.path}
               className={cn(
                 'flex items-center space-x-3 px-4 py-3 rounded-lg transition-all duration-200',
-                isActive 
-                  ? 'bg-coral-500 text-white' 
+                isActive
+                  ? 'bg-coral-500 text-white'
                   : 'text-gray-400 hover:bg-gray-800 hover:text-white'
               )}
             >
@@ -62,13 +61,7 @@ export const AdminSidebar = () => {
 
       {/* Footer */}
       <div className="p-4 border-t border-gray-800 space-y-1">
-        <Link
-          to="/admin/settings"
-          className="flex items-center space-x-3 px-4 py-3 rounded-lg text-gray-400 hover:bg-gray-800 hover:text-white transition-colors"
-        >
-          <Settings className="w-5 h-5" />
-          <span className="font-medium">Cài đặt</span>
-        </Link>
+
         <Link
           to="/"
           className="flex items-center space-x-3 px-4 py-3 rounded-lg text-gray-400 hover:bg-gray-800 hover:text-white transition-colors"
@@ -76,7 +69,7 @@ export const AdminSidebar = () => {
           <ChevronLeft className="w-5 h-5" />
           <span className="font-medium">Về trang chủ</span>
         </Link>
-        <button 
+        <button
           onClick={logout}
           className="w-full flex items-center space-x-3 px-4 py-3 rounded-lg text-red-400 hover:bg-gray-800 transition-colors"
         >
