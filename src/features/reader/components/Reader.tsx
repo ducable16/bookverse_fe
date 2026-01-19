@@ -43,7 +43,7 @@ export const Reader = ({ book }: ReaderProps) => {
 
   // UI state
   const [showSidebar, setShowSidebar] = useState(false);
-  const [sidebarTab, setSidebarTab] = useState<'settings' | 'bookmarks' | 'highlights'>('settings');
+  const [sidebarTab, setSidebarTab] = useState<'settings' | 'chapters'>('settings');
   const [currentPage, setCurrentPage] = useState(0);
 
   // TTS hook
@@ -372,14 +372,46 @@ export const Reader = ({ book }: ReaderProps) => {
         activeTab={sidebarTab}
         onTabChange={setSidebarTab}
       >
-        {sidebarTab === 'bookmarks' && (
-          <div className="text-center py-8 text-gray-500">
-            Chưa có bookmark nào
-          </div>
-        )}
-        {sidebarTab === 'highlights' && (
-          <div className="text-center py-8 text-gray-500">
-            Chưa có highlight nào
+        {sidebarTab === 'chapters' && (
+          <div className="space-y-2">
+            {chapters.length === 0 ? (
+              <div className="text-center py-8 text-gray-500">
+                Không có chương nào
+              </div>
+            ) : (
+              chapters.map((chapter, index) => (
+                <button
+                  key={chapter.id}
+                  onClick={() => {
+                    setCurrentChapterIndex(index);
+                    setSearchParams({ chapter: String(chapter.chapterNumber) });
+                    setShowSidebar(false);
+                  }}
+                  className={`w-full text-left px-4 py-3 rounded-lg transition-colors ${index === currentChapterIndex
+                      ? 'bg-accent-teal text-white'
+                      : settings.theme === 'dark'
+                        ? 'bg-gray-700 hover:bg-gray-600 text-gray-100'
+                        : settings.theme === 'sepia'
+                          ? 'bg-amber-100 hover:bg-amber-200 text-amber-900'
+                          : 'bg-white hover:bg-cream-200 text-gray-900'
+                    }`}
+                >
+                  <div className="font-medium text-sm mb-1">
+                    Chương {chapter.chapterNumber}
+                  </div>
+                  <div className={`text-xs ${index === currentChapterIndex
+                      ? 'text-white/90'
+                      : settings.theme === 'dark'
+                        ? 'text-gray-400'
+                        : settings.theme === 'sepia'
+                          ? 'text-amber-700'
+                          : 'text-gray-600'
+                    }`}>
+                    {chapter.title}
+                  </div>
+                </button>
+              ))
+            )}
           </div>
         )}
       </ReaderSidebar>

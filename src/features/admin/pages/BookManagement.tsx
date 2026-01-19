@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import { AdminHeader } from '../components/AdminHeader';
-import { Plus, Edit2, Trash2, Search, Filter, Eye, Upload, X, BookOpen } from 'lucide-react';
+import { Plus, Edit2, Trash2, Search, Filter, Upload, X, BookOpen } from 'lucide-react';
 import { AdminBook } from '../types';
 import { AuthorSelect } from '../components/AuthorSelect';
 import { booksService, categoriesService, authorsService, uploadService } from '@/services';
@@ -39,7 +39,7 @@ export const BookManagement = () => {
   const [newCategoryName, setNewCategoryName] = useState('');
   const [newCategoryDescription, setNewCategoryDescription] = useState('');
   const [categoryLoading, setCategoryLoading] = useState(false);
-  
+
   const [showAuthorModal, setShowAuthorModal] = useState(false);
   const [newAuthorName, setNewAuthorName] = useState('');
   const [newAuthorBio, setNewAuthorBio] = useState('');
@@ -212,7 +212,7 @@ export const BookManagement = () => {
       setNewAuthorAvatar('');
 
       toast.success('Thêm tác giả thành công!');
-      
+
       // Set newly created author ID to auto-select it
       setNewlyCreatedAuthorId(String(apiAuthor.id));
     } catch (err) {
@@ -223,12 +223,7 @@ export const BookManagement = () => {
     }
   };
 
-  const formatViews = (views: number) => {
-    if (views >= 1000) {
-      return `${(views / 1000).toFixed(1)}K`;
-    }
-    return views.toString();
-  };
+
 
   return (
     <div>
@@ -304,7 +299,6 @@ export const BookManagement = () => {
                   <th className="text-left px-6 py-4 text-sm font-semibold text-gray-600">Thể loại</th>
                   <th className="text-left px-6 py-4 text-sm font-semibold text-gray-600">Trạng thái</th>
                   <th className="text-left px-6 py-4 text-sm font-semibold text-gray-600">Chương</th>
-                  <th className="text-left px-6 py-4 text-sm font-semibold text-gray-600">Lượt xem</th>
                   <th className="text-left px-6 py-4 text-sm font-semibold text-gray-600">Cập nhật</th>
                   <th className="text-right px-6 py-4 text-sm font-semibold text-gray-600">Thao tác</th>
                 </tr>
@@ -344,12 +338,6 @@ export const BookManagement = () => {
                       </span>
                     </td>
                     <td className="px-6 py-4 text-gray-600">{book.totalChapters}</td>
-                    <td className="px-6 py-4">
-                      <div className="flex items-center space-x-1 text-gray-600">
-                        <Eye className="w-4 h-4" />
-                        <span>{formatViews(book.views)}</span>
-                      </div>
-                    </td>
                     <td className="px-6 py-4 text-gray-600">{book.updatedAt}</td>
                     <td className="px-6 py-4">
                       <div className="flex items-center justify-end space-x-2">
@@ -389,8 +377,8 @@ export const BookManagement = () => {
         <BookModal
           book={editingBook}
           categories={categories}
-          onClose={() => { 
-            setShowModal(false); 
+          onClose={() => {
+            setShowModal(false);
             setEditingBook(null);
             setNewlyCreatedAuthorId(null);
           }}
@@ -421,7 +409,7 @@ export const BookManagement = () => {
         description={newCategoryDescription}
         setDescription={setNewCategoryDescription}
       />
-      
+
       {/* Author Modal */}
       <AuthorModal
         isOpen={showAuthorModal}
@@ -833,10 +821,10 @@ const AuthorModal = ({ isOpen, onClose, onSave, loading, name, setName, bio, set
 
     try {
       uploadService.validateImage(file, 5);
-      
+
       const previewUrl = uploadService.createPreviewUrl(file);
       setAvatarPreview(previewUrl);
-      
+
       setUploading(true);
       const url = await uploadService.uploadImage(file);
       setAvatar(url);

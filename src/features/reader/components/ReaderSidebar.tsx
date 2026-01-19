@@ -1,4 +1,4 @@
-import { X, Type, Palette, AlignJustify, Bookmark, Highlighter, Sun, BookOpen, Moon, BookMarked, List } from 'lucide-react';
+import { X, Type, Palette, AlignJustify, Sun, BookOpen, Moon, BookMarked, List } from 'lucide-react';
 
 interface ReaderSettings {
   fontSize: number;
@@ -14,8 +14,8 @@ interface ReaderSidebarProps {
   settings: ReaderSettings;
   onSettingsChange: (settings: Partial<ReaderSettings>) => void;
   fonts: Array<{ name: string; value: string; category: string }>;
-  activeTab: 'settings' | 'bookmarks' | 'highlights' | 'chapters';
-  onTabChange: (tab: 'settings' | 'bookmarks' | 'highlights' | 'chapters') => void;
+  activeTab: 'settings' | 'chapters';
+  onTabChange: (tab: 'settings' | 'chapters') => void;
   children?: React.ReactNode;
 }
 
@@ -110,7 +110,7 @@ export const ReaderSidebar = ({
         </div>
 
         {/* Tabs */}
-        <div className={`grid grid-cols-4 border-b ${isDark ? 'border-gray-700' : isSepia ? 'border-amber-200' : 'border-gray-200'
+        <div className={`grid grid-cols-2 border-b ${isDark ? 'border-gray-700' : isSepia ? 'border-amber-200' : 'border-gray-200'
           }`}>
           <button
             onClick={() => onTabChange('chapters')}
@@ -131,26 +131,6 @@ export const ReaderSidebar = ({
           >
             <Type className="w-4 h-4" />
             <span className="text-sm font-medium">Hiển thị</span>
-          </button>
-          <button
-            onClick={() => onTabChange('bookmarks')}
-            className={`flex items-center justify-center space-x-1 py-3 px-2 transition-colors ${activeTab === 'bookmarks'
-              ? `border-b-2 border-accent-teal ${getActiveClass()}`
-              : getHoverClass()
-              }`}
-          >
-            <Bookmark className="w-4 h-4" />
-            <span className="text-sm font-medium">Bookmark</span>
-          </button>
-          <button
-            onClick={() => onTabChange('highlights')}
-            className={`flex items-center justify-center space-x-1 py-3 px-2 transition-colors ${activeTab === 'highlights'
-              ? `border-b-2 border-accent-teal ${getActiveClass()}`
-              : getHoverClass()
-              }`}
-          >
-            <Highlighter className="w-4 h-4" />
-            <span className="text-sm font-medium">Highlight</span>
           </button>
         </div>
 
