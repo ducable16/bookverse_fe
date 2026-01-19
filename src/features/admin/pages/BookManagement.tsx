@@ -3,10 +3,9 @@ import { useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import { AdminHeader } from '../components/AdminHeader';
 import { Plus, Edit2, Trash2, Search, Filter, Eye, Upload, X, BookOpen } from 'lucide-react';
-import { AdminBook, Author } from '../types';
+import { AdminBook } from '../types';
 import { AuthorSelect } from '../components/AuthorSelect';
-import { CategorySelect } from '../components/CategorySelect';
-import { booksService, categoriesService, uploadService } from '@/services';
+import { booksService, categoriesService, authorsService, uploadService } from '@/services';
 import type { Book as ApiBook, Category } from '@/types/api.types';
 
 // Helper to map API Book to AdminBook
@@ -40,6 +39,12 @@ export const BookManagement = () => {
   const [newCategoryName, setNewCategoryName] = useState('');
   const [newCategoryDescription, setNewCategoryDescription] = useState('');
   const [categoryLoading, setCategoryLoading] = useState(false);
+  
+  const [showAuthorModal, setShowAuthorModal] = useState(false);
+  const [newAuthorName, setNewAuthorName] = useState('');
+  const [newAuthorBio, setNewAuthorBio] = useState('');
+  const [newAuthorAvatar, setNewAuthorAvatar] = useState('');
+  const [authorLoading, setAuthorLoading] = useState(false);
 
   // Fetch books and categories on mount
   useEffect(() => {
@@ -184,8 +189,38 @@ export const BookManagement = () => {
     }
   };
 
-  const handleAddAuthor = (newAuthor: Author) => {
-    // Author is added via AuthorSelect component which handles API
+  const [newlyCreatedAuthorId, setNewlyCreatedAuthorId] = useState<string | null>(null);
+
+  const handleCreateAuthor = async () => {
+    if (!newAuthorName.trim()) {
+      toast.error('Vui lòng nhập tên tác giả');
+      return;
+    }
+
+    try {
+      setAuthorLoading(true);
+      const apiAuthor = await authorsService.create({
+        name: newAuthorName.trim(),
+        biography: newAuthorBio.trim(),
+        avatar: newAuthorAvatar,
+      });
+
+      // Close modal and reset form
+      setShowAuthorModal(false);
+      setNewAuthorName('');
+      setNewAuthorBio('');
+      setNewAuthorAvatar('');
+
+      toast.success('Thêm tác giả thành công!');
+      
+      // Set newly created author ID to auto-select it
+      setNewlyCreatedAuthorId(String(apiAuthor.id));
+    } catch (err) {
+      console.error('Error creating author:', err);
+      toast.error('Không thể thêm tác giả. Vui lòng thử lại.');
+    } finally {
+      setAuthorLoading(false);
+    }
   };
 
   const formatViews = (views: number) => {
@@ -354,10 +389,16 @@ export const BookManagement = () => {
         <BookModal
           book={editingBook}
           categories={categories}
-          onClose={() => { setShowModal(false); setEditingBook(null); }}
+          onClose={() => { 
+            setShowModal(false); 
+            setEditingBook(null);
+            setNewlyCreatedAuthorId(null);
+          }}
           onSave={handleSave}
-          onAddAuthor={handleAddAuthor}
+          onAddAuthor={() => setShowAuthorModal(true)}
           onAddCategory={() => setShowCategoryModal(true)}
+          newlyCreatedAuthorId={newlyCreatedAuthorId}
+          onNewAuthorIdUsed={() => setNewlyCreatedAuthorId(null)}
         />
       )}
 
@@ -380,6 +421,25 @@ export const BookManagement = () => {
         description={newCategoryDescription}
         setDescription={setNewCategoryDescription}
       />
+      
+      {/* Author Modal */}
+      <AuthorModal
+        isOpen={showAuthorModal}
+        onClose={() => {
+          setShowAuthorModal(false);
+          setNewAuthorName('');
+          setNewAuthorBio('');
+          setNewAuthorAvatar('');
+        }}
+        onSave={handleCreateAuthor}
+        loading={authorLoading}
+        name={newAuthorName}
+        setName={setNewAuthorName}
+        bio={newAuthorBio}
+        setBio={setNewAuthorBio}
+        avatar={newAuthorAvatar}
+        setAvatar={setNewAuthorAvatar}
+      />
     </div>
   );
 };
@@ -389,11 +449,13 @@ interface BookModalProps {
   categories: Category[];
   onClose: () => void;
   onSave: (data: Partial<AdminBook>) => void;
-  onAddAuthor: (author: Author) => void;
+  onAddAuthor: () => void;
   onAddCategory: () => void;
+  newlyCreatedAuthorId: string | null;
+  onNewAuthorIdUsed: () => void;
 }
 
-const BookModal = ({ book, categories, onClose, onSave, onAddAuthor, onAddCategory }: BookModalProps) => {
+const BookModal = ({ book, categories, onClose, onSave, onAddAuthor, onAddCategory, newlyCreatedAuthorId, onNewAuthorIdUsed }: BookModalProps) => {
   const [formData, setFormData] = useState({
     title: book?.title || '',
     authorId: book?.authorId || '',
@@ -401,12 +463,27 @@ const BookModal = ({ book, categories, onClose, onSave, onAddAuthor, onAddCatego
     coverUrl: book?.coverUrl || '',
     description: book?.description || '',
     genre: book?.genre || [],
-    status: book?.status || 'draft',
   });
   const [coverPreview, setCoverPreview] = useState(book?.coverUrl || '');
   const [selectedGenres, setSelectedGenres] = useState<string[]>(book?.genre || []);
   const [uploading, setUploading] = useState(false);
   const [uploadError, setUploadError] = useState<string | null>(null);
+
+  // Auto-select newly created author
+  useEffect(() => {
+    if (newlyCreatedAuthorId) {
+      authorsService.getById(Number(newlyCreatedAuthorId)).then(author => {
+        setFormData(prev => ({
+          ...prev,
+          authorId: String(author.id),
+          authorName: author.name,
+        }));
+        onNewAuthorIdUsed();
+      }).catch(err => {
+        console.error('Error fetching new author:', err);
+      });
+    }
+  }, [newlyCreatedAuthorId, onNewAuthorIdUsed]);
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -466,7 +543,11 @@ const BookModal = ({ book, categories, onClose, onSave, onAddAuthor, onAddCatego
       toast.error('Vui lòng chọn ít nhất một thể loại');
       return;
     }
-    onSave(formData);
+    // Set default status to 'published' if creating new book
+    onSave({
+      ...formData,
+      status: book?.status || 'published',
+    });
   };
 
   return (
@@ -496,35 +577,21 @@ const BookModal = ({ book, categories, onClose, onSave, onAddAuthor, onAddCatego
             />
           </div>
 
-          {/* Tác giả và Trạng thái */}
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Tác giả <span className="text-red-500">*</span>
-              </label>
-              <AuthorSelect
-                value={formData.authorId}
-                onChange={(authorId, authorName) => {
-                  setFormData({ ...formData, authorId, authorName });
-                }}
-                onAddAuthor={onAddAuthor}
-              />
-              {!formData.authorId && (
-                <p className="text-xs text-red-500 mt-1">Vui lòng chọn tác giả</p>
-              )}
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Trạng thái</label>
-              <select
-                value={formData.status}
-                onChange={(e) => setFormData({ ...formData, status: e.target.value as AdminBook['status'] })}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-coral-400"
-              >
-                <option value="draft">Bản nháp</option>
-                <option value="published">Đã xuất bản</option>
-                <option value="archived">Lưu trữ</option>
-              </select>
-            </div>
+          {/* Tác giả */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Tác giả <span className="text-red-500">*</span>
+            </label>
+            <AuthorSelect
+              value={formData.authorId}
+              onChange={(authorId, authorName) => {
+                setFormData({ ...formData, authorId, authorName });
+              }}
+              onAddAuthor={onAddAuthor}
+            />
+            {!formData.authorId && (
+              <p className="text-xs text-red-500 mt-1">Vui lòng chọn tác giả</p>
+            )}
           </div>
 
           {/* Ảnh bìa - Upload */}
@@ -731,6 +798,145 @@ const CategoryModal = ({ isOpen, onClose, onSave, loading, name, setName, descri
               type="button"
               onClick={onSave}
               disabled={loading || !name.trim()}
+              className="flex-1 px-4 py-2 bg-coral-500 text-white rounded-lg hover:bg-coral-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {loading ? 'Đang lưu...' : 'Thêm mới'}
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// Author Modal Component
+const AuthorModal = ({ isOpen, onClose, onSave, loading, name, setName, bio, setBio, avatar, setAvatar }: {
+  isOpen: boolean;
+  onClose: () => void;
+  onSave: () => void;
+  loading: boolean;
+  name: string;
+  setName: (name: string) => void;
+  bio: string;
+  setBio: (bio: string) => void;
+  avatar: string;
+  setAvatar: (avatar: string) => void;
+}) => {
+  const [avatarPreview, setAvatarPreview] = useState(avatar);
+  const [uploading, setUploading] = useState(false);
+
+  if (!isOpen) return null;
+
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    try {
+      uploadService.validateImage(file, 5);
+      
+      const previewUrl = uploadService.createPreviewUrl(file);
+      setAvatarPreview(previewUrl);
+      
+      setUploading(true);
+      const url = await uploadService.uploadImage(file);
+      setAvatar(url);
+      setAvatarPreview(url);
+      setUploading(false);
+      toast.success('Tải ảnh lên thành công!');
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : 'Không thể tải ảnh lên');
+      setUploading(false);
+    }
+  };
+
+  return (
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+      <div className="bg-white rounded-xl w-full max-w-md">
+        <div className="border-b border-gray-200 px-6 py-4 flex items-center justify-between">
+          <h2 className="text-xl font-bold">Thêm tác giả mới</h2>
+          <button onClick={onClose} className="p-2 hover:bg-gray-100 rounded-lg">
+            <X className="w-5 h-5" />
+          </button>
+        </div>
+
+        <div className="p-6 space-y-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Tên tác giả <span className="text-red-500">*</span>
+            </label>
+            <input
+              type="text"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-coral-400"
+              placeholder="Ví dụ: Nguyễn Nhật Ánh..."
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Ảnh đại diện
+            </label>
+            <div className="flex items-center space-x-4">
+              <div className="flex-shrink-0">
+                {avatarPreview ? (
+                  <img
+                    src={avatarPreview}
+                    alt="Preview"
+                    className="w-20 h-20 object-cover rounded-full border-2 border-gray-200"
+                  />
+                ) : (
+                  <div className="w-20 h-20 bg-gray-100 rounded-full border-2 border-dashed border-gray-300 flex items-center justify-center">
+                    <span className="text-gray-400 text-xs">No image</span>
+                  </div>
+                )}
+              </div>
+
+              <label className="flex-1 flex flex-col items-center justify-center h-20 border-2 border-gray-300 border-dashed rounded-lg cursor-pointer bg-gray-50 hover:bg-gray-100 transition-colors">
+                <div className="flex items-center space-x-2">
+                  <Upload className="w-5 h-5 text-gray-400" />
+                  <span className="text-sm text-gray-500">
+                    {uploading ? 'Đang tải...' : 'Tải lên ảnh'}
+                  </span>
+                </div>
+                <p className="text-xs text-gray-400 mt-1">PNG, JPG (MAX. 5MB)</p>
+                <input
+                  type="file"
+                  className="hidden"
+                  accept="image/*"
+                  onChange={handleFileChange}
+                  disabled={uploading}
+                />
+              </label>
+            </div>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Tiểu sử
+            </label>
+            <textarea
+              value={bio}
+              onChange={(e) => setBio(e.target.value)}
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-coral-400"
+              rows={3}
+              placeholder="Tiểu sử ngắn gọn về tác giả..."
+            />
+          </div>
+
+          <div className="flex space-x-3 pt-4">
+            <button
+              type="button"
+              onClick={onClose}
+              className="flex-1 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+              disabled={loading || uploading}
+            >
+              Hủy
+            </button>
+            <button
+              type="button"
+              onClick={onSave}
+              disabled={loading || uploading || !name.trim()}
               className="flex-1 px-4 py-2 bg-coral-500 text-white rounded-lg hover:bg-coral-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {loading ? 'Đang lưu...' : 'Thêm mới'}

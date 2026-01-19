@@ -5,6 +5,7 @@ import { ProtectedRoute } from './components/ProtectedRoute';
 import { Layout } from './features/shared/components/layout/Layout';
 import { Home } from './features/home/pages/Home';
 import { BookDetails } from './features/books/pages/BookDetails';
+import { AllBooks } from './features/books/pages/AllBooks';
 import { ReadBook } from './features/reader/pages/ReadBook';
 import { History } from './features/history/pages/History';
 import { Saved } from './features/saved/pages/Saved';
@@ -55,12 +56,11 @@ function App() {
           {/* Public Routes with Layout */}
           <Route path="/" element={<Layout><Home /></Layout>} />
           <Route path="/book/:id" element={<Layout><BookDetails /></Layout>} />
+          <Route path="/all-books" element={<Layout><AllBooks /></Layout>} />
           <Route path="/search" element={<Layout><SearchResults /></Layout>} />
           <Route path="/history" element={<Layout><History /></Layout>} />
           <Route path="/saved" element={<Layout><Saved /></Layout>} />
           <Route path="/categories" element={<Layout><Categories /></Layout>} />
-          <Route path="/library" element={<Layout><Home /></Layout>} />
-          <Route path="/discover" element={<Layout><Home /></Layout>} />
 
           {/* Reader without Header (minimal UI) */}
           <Route path="/read/:id" element={<ReadBook />} />

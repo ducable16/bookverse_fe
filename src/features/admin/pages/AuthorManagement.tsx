@@ -49,11 +49,26 @@ export const AuthorManagement = () => {
         throw new Error('Invalid API response format');
       }
 
-      const mappedAuthors = apiAuthors.map(mapApiAuthorToLocal);
-      console.log('🔄 Mapped authors:', mappedAuthors);
+      // Fetch book count for each author
+      const authorsWithBookCount = await Promise.all(
+        apiAuthors.map(async (apiAuthor) => {
+          try {
+            const books = await booksService.getByAuthor(apiAuthor.id);
+            return mapApiAuthorToLocal({
+              ...apiAuthor,
+              bookCount: books.length,
+            });
+          } catch (err) {
+            console.error(`Error fetching books for author ${apiAuthor.id}:`, err);
+            return mapApiAuthorToLocal(apiAuthor);
+          }
+        })
+      );
 
-      setAuthors(mappedAuthors);
-      console.log('✨ Authors state updated with', mappedAuthors.length, 'items');
+      console.log('🔄 Mapped authors with book counts:', authorsWithBookCount);
+
+      setAuthors(authorsWithBookCount);
+      console.log('✨ Authors state updated with', authorsWithBookCount.length, 'items');
     } catch (err) {
       console.error('❌ Error fetching authors:', err);
       setError('Không thể tải danh sách tác giả. Vui lòng thử lại.');

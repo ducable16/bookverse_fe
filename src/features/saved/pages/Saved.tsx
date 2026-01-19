@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { BookGrid } from '@/features/books/components/BookGrid';
 import { readingService } from '@/services';
+import { useAuth } from '@/contexts/AuthContext';
 import type { SavedBook as ApiSavedBook } from '@/types/api.types';
 import type { Book } from '@/features/shared/types';
 
@@ -10,23 +11,30 @@ const mapSavedBook = (saved: ApiSavedBook): Book => ({
   title: saved.book.title,
   author: saved.book.author.name,
   coverUrl: saved.book.coverImage,
-  description: saved.book.description,
+  description: '', // Description not in saved book response
   genre: saved.book.categories[0]?.name || 'General',
-  rating: saved.book.rating,
-  reviewCount: saved.book.totalReviews,
+  rating: 0, // Rating not in saved book response
+  reviewCount: 0, // Review count not in saved book response
   isSaved: true,
 });
 
 export const Saved = () => {
+  const { user } = useAuth();
   const [savedBooks, setSavedBooks] = useState<Book[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchSavedBooks = async () => {
+      if (!user) {
+        setLoading(false);
+        setError('Vui lòng đăng nhập để xem sách đã lưu');
+        return;
+      }
+
       try {
         setLoading(true);
-        const saved = await readingService.getSavedBooks();
+        const saved = await readingService.getSavedBooks(user.id);
         setSavedBooks(saved.map(mapSavedBook));
       } catch (err) {
         console.error('Error fetching saved books:', err);
@@ -37,7 +45,7 @@ export const Saved = () => {
     };
 
     fetchSavedBooks();
-  }, []);
+  }, [user]);
 
   if (loading) {
     return (

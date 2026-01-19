@@ -1,11 +1,13 @@
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { ChevronLeft, ChevronRight, Settings, Maximize2, List } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Settings, Volume2, VolumeX, Pause, Play } from 'lucide-react';
 
 import { Book } from '@/types';
 import { ReaderSidebar } from './ReaderSidebar';
-import { chaptersService } from '@/services';
+import { chaptersService, readingService } from '@/services';
 import { ChapterResponse } from '@/types/api.types';
+import { useTTS } from '../hooks/useTTS';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface ReaderProps {
   book: Book;
@@ -29,6 +31,7 @@ const THEME_CLASSES = {
 
 export const Reader = ({ book }: ReaderProps) => {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [searchParams, setSearchParams] = useSearchParams();
   const chapterNumberFromUrl = parseInt(searchParams.get('chapter') || '1');
 
@@ -40,9 +43,15 @@ export const Reader = ({ book }: ReaderProps) => {
 
   // UI state
   const [showSidebar, setShowSidebar] = useState(false);
-  const [sidebarTab, setSidebarTab] = useState<'settings' | 'bookmarks' | 'highlights' | 'chapters'>('settings');
-  const [isFullscreen, setIsFullscreen] = useState(false);
+  const [sidebarTab, setSidebarTab] = useState<'settings' | 'bookmarks' | 'highlights'>('settings');
   const [currentPage, setCurrentPage] = useState(0);
+
+  // TTS hook
+  const { speak, pause, resume, stop, isPlaying, isLoading: isTTSLoading } = useTTS();
+
+  // Reading history tracking
+  const lastSavedChapterRef = useRef<number | null>(null);
+  const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   // Reader settings
   const [settings, setSettings] = useState({
@@ -166,6 +175,56 @@ export const Reader = ({ book }: ReaderProps) => {
     return () => clearTimeout(timer);
   }, [currentChapter?.id, columnWidth, settings.fontSize, settings.fontFamily, settings.lineHeight, settings.pagesPerView]);
 
+  // Auto-save reading history when user reaches end of chapter
+  useEffect(() => {
+    // Clear any pending save timeout
+    if (saveTimeoutRef.current) {
+      clearTimeout(saveTimeoutRef.current);
+      saveTimeoutRef.current = null;
+    }
+
+    // Only save if user is logged in and we have a current chapter
+    if (!user || !currentChapter || totalPages === 0) return;
+
+    const currentChapterNumber = currentChapter.chapterNumber;
+
+    // Check if user is on last page of chapter (completed chapter)
+    const isOnLastPage = currentPage >= totalPages - settings.pagesPerView;
+
+    // Only save if:
+    // 1. User is on last page
+    // 2. Haven't saved this chapter yet
+    if (isOnLastPage && lastSavedChapterRef.current !== currentChapterNumber) {
+      // Debounce: wait 3 seconds before saving to ensure user has actually finished
+      saveTimeoutRef.current = setTimeout(async () => {
+        try {
+          await readingService.saveReadingHistory({
+            userId: user.id,
+            bookId: Number(book.id),
+            lastReadChapter: currentChapterNumber,
+          });
+          lastSavedChapterRef.current = currentChapterNumber;
+          console.log(`Reading history saved for chapter ${currentChapterNumber}`);
+        } catch (err) {
+          console.error('Error saving reading history:', err);
+          // Silently fail - don't interrupt reading experience
+        }
+      }, 3000); // 3 second delay
+    }
+
+    // Cleanup timeout on unmount
+    return () => {
+      if (saveTimeoutRef.current) {
+        clearTimeout(saveTimeoutRef.current);
+      }
+    };
+  }, [user, book.id, currentChapter, currentPage, totalPages, settings.pagesPerView]);
+
+  // Reset saved chapter tracking when changing chapters
+  useEffect(() => {
+    lastSavedChapterRef.current = null;
+  }, [currentChapter?.id]);
+
   // Chapter navigation
   const hasPrevChapter = currentChapterIndex > 0;
   const hasNextChapter = currentChapterIndex < chapters.length - 1;
@@ -234,6 +293,28 @@ export const Reader = ({ book }: ReaderProps) => {
     return () => document.removeEventListener('fullscreenchange', handleFullscreenChange);
   }, []);
 
+  // TTS handlers
+  const handleTTSToggle = () => {
+    if (isPlaying) {
+      pause();
+    } else if (currentChapter) {
+      // Extract plain text from HTML content
+      const tempDiv = document.createElement('div');
+      tempDiv.innerHTML = currentChapter.content;
+      const plainText = tempDiv.textContent || tempDiv.innerText || '';
+      speak(plainText);
+    }
+  };
+
+  const handleTTSStop = () => {
+    stop();
+  };
+
+  // Stop TTS when changing chapter
+  useEffect(() => {
+    stop();
+  }, [currentChapter?.id]);
+
   // Keyboard navigation
   useEffect(() => {
     const handleKeyPress = (e: KeyboardEvent) => {
@@ -291,35 +372,6 @@ export const Reader = ({ book }: ReaderProps) => {
         activeTab={sidebarTab}
         onTabChange={setSidebarTab}
       >
-        {sidebarTab === 'chapters' && (
-          <div className="space-y-2">
-            {chapters.map((chapter, index) => (
-              <button
-                key={chapter.id}
-                onClick={() => {
-                  setCurrentChapterIndex(index);
-                  setSearchParams({ chapter: String(chapter.chapterNumber) });
-                  setShowSidebar(false);
-                }}
-                className={`w-full text-left px-4 py-3 rounded-lg transition-colors ${currentChapterIndex === index
-                    ? 'bg-accent-teal text-white'
-                    : settings.theme === 'dark'
-                      ? 'hover:bg-gray-700'
-                      : settings.theme === 'sepia'
-                        ? 'hover:bg-amber-100'
-                        : 'hover:bg-cream-200'
-                  }`}
-              >
-                <div className="font-medium">
-                  Chương {chapter.chapterNumber}
-                </div>
-                <div className="text-sm opacity-80 line-clamp-1">
-                  {chapter.title}
-                </div>
-              </button>
-            ))}
-          </div>
-        )}
         {sidebarTab === 'bookmarks' && (
           <div className="text-center py-8 text-gray-500">
             Chưa có bookmark nào
@@ -353,23 +405,40 @@ export const Reader = ({ book }: ReaderProps) => {
         </div>
 
         <div className="flex items-center gap-2">
-          <button
-            onClick={() => {
-              setSidebarTab('chapters');
-              setShowSidebar(true);
-            }}
-            className="p-2 hover:bg-black/5 rounded-full transition-colors flex-shrink-0"
-            title="Mục lục"
-          >
-            <List className="w-5 h-5" />
-          </button>
-          <button
-            onClick={toggleFullscreen}
-            className="p-2 hover:bg-black/5 rounded-full transition-colors flex-shrink-0"
-            title="Toàn màn hình"
-          >
-            <Maximize2 className="w-5 h-5" />
-          </button>
+          {/* TTS Controls */}
+          {isPlaying ? (
+            <>
+              <button
+                onClick={handleTTSToggle}
+                className="p-2 hover:bg-black/5 rounded-full transition-colors flex-shrink-0"
+                title="Tạm dừng"
+                disabled={isTTSLoading}
+              >
+                <Pause className="w-5 h-5" />
+              </button>
+              <button
+                onClick={handleTTSStop}
+                className="p-2 hover:bg-black/5 rounded-full transition-colors flex-shrink-0"
+                title="Dừng"
+              >
+                <VolumeX className="w-5 h-5" />
+              </button>
+            </>
+          ) : (
+            <button
+              onClick={handleTTSToggle}
+              className="p-2 hover:bg-black/5 rounded-full transition-colors flex-shrink-0"
+              title="Đọc to"
+              disabled={isTTSLoading}
+            >
+              {isTTSLoading ? (
+                <div className="w-5 h-5 border-2 border-current border-t-transparent rounded-full animate-spin" />
+              ) : (
+                <Volume2 className="w-5 h-5" />
+              )}
+            </button>
+          )}
+
           <button
             onClick={() => {
               setSidebarTab('settings');

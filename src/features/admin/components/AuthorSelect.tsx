@@ -1,13 +1,12 @@
 import { useState, useEffect, useRef } from 'react';
-import toast from 'react-hot-toast';
-import { Search, Plus, X, Check, Upload } from 'lucide-react';
+import { Search, Plus, Check } from 'lucide-react';
 import { Author } from '../types';
 import { authorsService } from '@/services';
 
 interface AuthorSelectProps {
   value: string;
   onChange: (authorId: string, authorName: string) => void;
-  onAddAuthor?: (author: Author) => void;
+  onAddAuthor?: () => void;
 }
 
 export const AuthorSelect = ({ value, onChange, onAddAuthor }: AuthorSelectProps) => {
@@ -16,7 +15,6 @@ export const AuthorSelect = ({ value, onChange, onAddAuthor }: AuthorSelectProps
   const [authors, setAuthors] = useState<Author[]>([]);
   const [allAuthors, setAllAuthors] = useState<Author[]>([]);
   const [loading, setLoading] = useState(false);
-  const [showAddModal, setShowAddModal] = useState(false);
   const [selectedAuthor, setSelectedAuthor] = useState<Author | null>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
@@ -82,12 +80,9 @@ export const AuthorSelect = ({ value, onChange, onAddAuthor }: AuthorSelectProps
     setSearchQuery('');
   };
 
-  const handleAddNewAuthor = (newAuthor: Author) => {
-    if (onAddAuthor) {
-      onAddAuthor(newAuthor);
-    }
-    handleSelect(newAuthor);
-    setShowAddModal(false);
+  const handleAddNew = () => {
+    setIsOpen(false);
+    onAddAuthor?.();
   };
 
   return (
@@ -155,34 +150,18 @@ export const AuthorSelect = ({ value, onChange, onAddAuthor }: AuthorSelectProps
                 </button>
               ))
             ) : (
-              <div className="p-4 text-center">
-                <p className="text-gray-500 text-sm mb-3">
-                  Không tìm thấy tác giả "{searchQuery}"
-                </p>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setShowAddModal(true);
-                    setIsOpen(false);
-                  }}
-                  className="inline-flex items-center space-x-2 px-4 py-2 bg-coral-500 hover:bg-coral-600 text-white text-sm rounded-lg transition-colors"
-                >
-                  <Plus className="w-4 h-4" />
-                  <span>Thêm tác giả mới</span>
-                </button>
+              <div className="p-4 text-center text-gray-500 text-sm">
+                {searchQuery ? `Không tìm thấy tác giả "${searchQuery}"` : 'Chưa có tác giả nào'}
               </div>
             )}
           </div>
 
           {/* Add New Button (Footer) */}
-          {authors.length > 0 && (
+          {onAddAuthor && authors.length > 0 && (
             <div className="p-2 border-t border-gray-200 bg-gray-50">
               <button
                 type="button"
-                onClick={() => {
-                  setShowAddModal(true);
-                  setIsOpen(false);
-                }}
+                onClick={handleAddNew}
                 className="w-full flex items-center justify-center space-x-2 px-3 py-2 text-coral-600 hover:bg-coral-50 rounded-lg transition-colors text-sm font-medium"
               >
                 <Plus className="w-4 h-4" />
@@ -192,177 +171,6 @@ export const AuthorSelect = ({ value, onChange, onAddAuthor }: AuthorSelectProps
           )}
         </div>
       )}
-
-      {/* Add Author Modal */}
-      {showAddModal && (
-        <AddAuthorModal
-          defaultName={searchQuery}
-          onClose={() => setShowAddModal(false)}
-          onSave={handleAddNewAuthor}
-        />
-      )}
-    </div>
-  );
-};
-
-interface AddAuthorModalProps {
-  defaultName: string;
-  onClose: () => void;
-  onSave: (author: Author) => void;
-}
-
-const AddAuthorModal = ({ defaultName, onClose, onSave }: AddAuthorModalProps) => {
-  const [formData, setFormData] = useState({
-    name: defaultName,
-    bio: '',
-    avatar: '',
-  });
-  const [avatarPreview, setAvatarPreview] = useState('');
-  const [saving, setSaving] = useState(false);
-
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      // Validate file size (5MB)
-      if (file.size > 5 * 1024 * 1024) {
-        toast.error('File quá lớn! Vui lòng chọn file nhỏ hơn 5MB');
-        return;
-      }
-
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        const result = reader.result as string;
-        setAvatarPreview(result);
-        setFormData({ ...formData, avatar: result });
-      };
-      reader.readAsDataURL(file);
-    }
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setSaving(true);
-
-    // Simulate API call
-    setTimeout(() => {
-      const newAuthor: Author = {
-        id: String(Date.now()),
-        name: formData.name,
-        bio: formData.bio,
-        avatar: formData.avatar,
-        booksCount: 0,
-        createdAt: new Date().toISOString().split('T')[0],
-      };
-
-      // In thực tế, bạn sẽ gọi API ở đây
-      // const response = await fetch('/api/authors', {
-      //   method: 'POST',
-      //   body: JSON.stringify(formData)
-      // });
-      // const newAuthor = await response.json();
-
-      onSave(newAuthor);
-      setSaving(false);
-    }, 500);
-  };
-
-  return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[100] p-4">
-      <div className="bg-white rounded-xl w-full max-w-md">
-        <div className="flex items-center justify-between p-4 border-b border-gray-200">
-          <h3 className="text-lg font-bold">Thêm tác giả mới</h3>
-          <button
-            onClick={onClose}
-            className="p-1 hover:bg-gray-100 rounded-lg transition-colors"
-          >
-            <X className="w-5 h-5" />
-          </button>
-        </div>
-
-        <form onSubmit={handleSubmit} className="p-4 space-y-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Tên tác giả <span className="text-red-500">*</span>
-            </label>
-            <input
-              type="text"
-              value={formData.name}
-              onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-coral-400"
-              required
-              autoFocus
-            />
-          </div>
-
-          {/* Upload ảnh đại diện */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Ảnh đại diện
-            </label>
-            <div className="flex items-start space-x-3">
-              {/* Preview */}
-              <div className="flex-shrink-0">
-                {avatarPreview || formData.avatar ? (
-                  <img
-                    src={avatarPreview || formData.avatar}
-                    alt="Preview"
-                    className="w-20 h-20 object-cover rounded-full border-2 border-gray-200"
-                  />
-                ) : (
-                  <div className="w-20 h-20 bg-gray-100 rounded-full border-2 border-dashed border-gray-300 flex items-center justify-center">
-                    <span className="text-gray-400 text-xs">No image</span>
-                  </div>
-                )}
-              </div>
-
-              {/* Upload Button */}
-              <label className="flex-1 flex flex-col items-center justify-center h-20 border-2 border-gray-300 border-dashed rounded-lg cursor-pointer bg-gray-50 hover:bg-gray-100 transition-colors">
-                <div className="flex items-center space-x-2">
-                  <Upload className="w-5 h-5 text-gray-400" />
-                  <span className="text-sm text-gray-500">Tải lên ảnh</span>
-                </div>
-                <p className="text-xs text-gray-400 mt-1">PNG, JPG (MAX. 5MB)</p>
-                <input
-                  type="file"
-                  className="hidden"
-                  accept="image/*"
-                  onChange={handleFileChange}
-                />
-              </label>
-            </div>
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Tiểu sử
-            </label>
-            <textarea
-              value={formData.bio}
-              onChange={(e) => setFormData({ ...formData, bio: e.target.value })}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-coral-400 h-20 resize-none"
-              placeholder="Nhập tiểu sử ngắn gọn..."
-            />
-          </div>
-
-          <div className="flex justify-end space-x-2 pt-2">
-            <button
-              type="button"
-              onClick={onClose}
-              className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
-              disabled={saving}
-            >
-              Hủy
-            </button>
-            <button
-              type="submit"
-              className="px-4 py-2 bg-coral-500 text-white rounded-lg hover:bg-coral-600 transition-colors disabled:opacity-50"
-              disabled={saving}
-            >
-              {saving ? 'Đang lưu...' : 'Thêm tác giả'}
-            </button>
-          </div>
-        </form>
-      </div>
     </div>
   );
 };

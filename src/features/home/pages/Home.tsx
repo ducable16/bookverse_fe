@@ -21,7 +21,6 @@ const mapApiBookToLocal = (apiBook: ApiBook): Book => ({
 export const Home = () => {
   const navigate = useNavigate();
   const [latestBooks, setLatestBooks] = useState<Book[]>([]);
-  const [recommendedBooks, setRecommendedBooks] = useState<Book[]>([]);
   const [readingHistory, setReadingHistory] = useState<import('@/types/api.types').ReadingHistory[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -49,10 +48,9 @@ export const Home = () => {
           }
         }
 
-        // Map and take first 7 for latest, next 7 for recommended
+        // Map books for latest section
         const mappedBooks = allBooks.map(mapApiBookToLocal);
         setLatestBooks(mappedBooks.slice(0, 7));
-        setRecommendedBooks(mappedBooks.slice(7, 14));
       } catch (err) {
         console.error('Error fetching books:', err);
         setError('Không thể tải sách. Vui lòng thử lại sau.');
@@ -147,14 +145,7 @@ export const Home = () => {
       <BookGrid
         books={latestBooks}
         title="Latest"
-        viewAllLink="/library"
-      />
-
-      {/* Recommended Section */}
-      <BookGrid
-        books={recommendedBooks}
-        title="Recommended Books"
-        viewAllLink="/discover"
+        viewAllLink="/all-books"
       />
     </div>
   );

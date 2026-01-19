@@ -129,7 +129,13 @@ export const History = () => {
 
                 {/* Reading Button */}
                 <Link
-                  to={`/read/${item.book.id}`}
+                  to={`/read/${item.book.id}?chapter=${
+                    // Since lastReadChapter is saved when finished, go to next chapter
+                    // unless it's the last chapter
+                    item.lastReadChapter < item.book.totalChapters
+                      ? item.lastReadChapter + 1
+                      : item.lastReadChapter
+                    }`}
                   className="inline-flex items-center space-x-2 bg-accent-teal hover:bg-teal-600 text-white font-medium px-6 py-2.5 rounded-full transition-colors"
                 >
                   <BookOpen className="w-5 h-5" />
@@ -142,7 +148,7 @@ export const History = () => {
                 <X className="w-6 h-6 text-gray-600" />
               </button>
             </div>
-            );
+          );
         })}
 
         {historyBooks.length === 0 && (

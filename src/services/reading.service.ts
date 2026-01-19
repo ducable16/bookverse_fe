@@ -53,28 +53,38 @@ export const readingService = {
     /**
      * Get user's saved books
      */
-    getSavedBooks: async (): Promise<SavedBook[]> => {
+    getSavedBooks: async (userId: number): Promise<SavedBook[]> => {
         const response = await apiClient.get<ApiResponse<SavedBook[]>>(
-            '/user/saved-books'
-        );
-        return response as unknown as SavedBook[];
+            `/saved-books/user/${userId}`
+        ) as unknown as ApiResponse<SavedBook[]>;
+        return response.data;
     },
 
     /**
      * Save a book
      */
-    saveBook: async (bookId: number): Promise<SavedBook> => {
+    saveBook: async (userId: number, bookId: number): Promise<SavedBook> => {
         const response = await apiClient.post<ApiResponse<SavedBook>>(
-            '/user/saved-books',
-            { bookId }
-        );
-        return response as unknown as SavedBook;
+            '/saved-books/save',
+            { userId, bookId }
+        ) as unknown as ApiResponse<SavedBook>;
+        return response.data;
     },
 
     /**
      * Remove a saved book
      */
-    removeSavedBook: async (bookId: number): Promise<void> => {
-        await apiClient.delete(`/user/saved-books/${bookId}`);
+    removeSavedBook: async (savedBookId: number): Promise<void> => {
+        await apiClient.post(`/saved-books/unsave?savedBookId=${savedBookId}`);
+    },
+
+    /**
+     * Check if a book is saved by a user
+     */
+    checkIfSaved: async (userId: number, bookId: number): Promise<boolean> => {
+        const response = await apiClient.get<boolean>(
+            `/saved-books/check?userId=${userId}&bookId=${bookId}`
+        );
+        return response as unknown as boolean;
     },
 };

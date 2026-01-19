@@ -291,11 +291,6 @@ const ChapterModal = ({ chapter, bookId, onClose, onSave, loading, nextChapterNu
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!formData.title.trim()) {
-      toast.error('Vui lòng nhập tiêu đề chapter');
-      return;
-    }
-
     if (!formData.content.trim() || formData.content === '<p></p>') {
       toast.error('Vui lòng nhập nội dung chapter');
       return;
@@ -311,8 +306,8 @@ const ChapterModal = ({ chapter, bookId, onClose, onSave, loading, nextChapterNu
           <h2 className="text-xl font-bold">
             {chapter ? 'Chỉnh sửa chapter' : 'Thêm chapter mới'}
           </h2>
-          <button 
-            onClick={onClose} 
+          <button
+            onClick={onClose}
             className="p-2 hover:bg-gray-100 rounded-lg"
             disabled={loading}
           >
@@ -341,7 +336,7 @@ const ChapterModal = ({ chapter, bookId, onClose, onSave, loading, nextChapterNu
             </div>
             <div className="col-span-3">
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Tiêu đề chapter <span className="text-red-500">*</span>
+                Tiêu đề chapter
               </label>
               <input
                 type="text"
@@ -349,7 +344,6 @@ const ChapterModal = ({ chapter, bookId, onClose, onSave, loading, nextChapterNu
                 onChange={(e) => setFormData({ ...formData, title: e.target.value })}
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-coral-400"
                 placeholder="VD: Chapter 1: Bắt đầu hành trình"
-                required
                 disabled={loading}
               />
             </div>

@@ -23,12 +23,6 @@ export const Header = () => {
             <Link to="/categories" className="text-gray-700 hover:text-coral-600 transition-colors">
               Thể loại
             </Link>
-            <Link to="/library" className="text-gray-700 hover:text-coral-600 transition-colors">
-              Thư viện
-            </Link>
-            <Link to="/discover" className="text-gray-700 hover:text-coral-600 transition-colors">
-              Khám phá
-            </Link>
           </nav>
 
           {/* Auth Section */}

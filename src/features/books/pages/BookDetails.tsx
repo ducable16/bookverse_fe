@@ -1,20 +1,24 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { ChevronLeft, BookOpen, Bookmark, Heart, Share2 } from 'lucide-react';
-import { booksService, chaptersService } from '@/services';
-import type { Book as ApiBook, ChapterResponse } from '@/types/api.types';
+import { booksService, chaptersService, readingService } from '@/services';
+import type { BookResponse, ChapterResponse } from '@/types/api.types';
 import { CommentSection } from '@/features/book-details/components/CommentSection';
 import { useAuth } from '@/contexts/AuthContext';
+import toast from 'react-hot-toast';
 
 export const BookDetails = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { user } = useAuth();
 
-  const [book, setBook] = useState<ApiBook | null>(null);
+  const [book, setBook] = useState<BookResponse | null>(null);
   const [chapters, setChapters] = useState<ChapterResponse[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [isSaved, setIsSaved] = useState(false);
+  const [savedBookId, setSavedBookId] = useState<number | null>(null);
+  const [savingBook, setSavingBook] = useState(false);
 
   useEffect(() => {
     const fetchBookDetails = async () => {
@@ -23,14 +27,36 @@ export const BookDetails = () => {
       try {
         setLoading(true);
         setError(null);
+        // Reset saved state when loading new book
+        setIsSaved(false);
+        setSavedBookId(null);
 
         // Fetch book details
-        const bookData = await booksService.getById(Number(id));
+        const bookData = await booksService.getById(Number(id)) as any as BookResponse;
         setBook(bookData);
 
         // Fetch chapters
         const chaptersData = await chaptersService.getByBook(Number(id)).catch(() => []);
         setChapters(chaptersData);
+
+        // Check if book is saved (only if user is logged in)
+        if (user) {
+          try {
+            const savedBooks = await readingService.getSavedBooks(user.id);
+            console.log('Saved books:', savedBooks);
+            const savedBook = savedBooks.find(sb => sb.book.id === Number(id));
+            console.log('Found saved book:', savedBook);
+            if (savedBook) {
+              setIsSaved(true);
+              setSavedBookId(savedBook.id);
+              console.log('Book is saved with ID:', savedBook.id);
+            } else {
+              console.log('Book is not saved');
+            }
+          } catch (err) {
+            console.error('Error checking saved status:', err);
+          }
+        }
       } catch (err) {
         console.error('Error fetching book details:', err);
         setError('Không thể tải thông tin sách');
@@ -40,7 +66,39 @@ export const BookDetails = () => {
     };
 
     fetchBookDetails();
-  }, [id]);
+  }, [id, user]);
+
+  const handleToggleSave = async () => {
+    if (!user) {
+      toast.error('Vui lòng đăng nhập để lưu sách');
+      return;
+    }
+
+    if (!book) return;
+
+    try {
+      setSavingBook(true);
+
+      if (isSaved && savedBookId) {
+        // Unsave book
+        await readingService.removeSavedBook(savedBookId);
+        setIsSaved(false);
+        setSavedBookId(null);
+        toast.success('Đã bỏ lưu sách');
+      } else {
+        // Save book
+        const savedBook = await readingService.saveBook(user.id, book.id);
+        setIsSaved(true);
+        setSavedBookId(savedBook.id);
+        toast.success('Đã lưu sách');
+      }
+    } catch (err) {
+      console.error('Error toggling save:', err);
+      toast.error('Có lỗi xảy ra. Vui lòng thử lại');
+    } finally {
+      setSavingBook(false);
+    }
+  };
 
   if (loading) {
     return (
@@ -100,11 +158,25 @@ export const BookDetails = () => {
           <div className="grid grid-cols-3 gap-6 py-4 border-b border-gray-200 mb-6">
             <div>
               <div className="text-sm text-gray-500 mb-1">Tác giả</div>
-              <div className="font-medium text-gray-900">{book.authorName}</div>
+              <Link 
+                to={`/search?author=${book.author.id}`}
+                className="font-medium text-accent-teal hover:text-teal-600 hover:underline"
+              >
+                {book.author.name}
+              </Link>
             </div>
             <div>
               <div className="text-sm text-gray-500 mb-1">Thể loại</div>
-              <div className="font-medium text-gray-900">{book.categoryName}</div>
+              {book.categories && book.categories.length > 0 ? (
+                <Link 
+                  to={`/search?category=${book.categories[0].id}`}
+                  className="font-medium text-accent-teal hover:text-teal-600 hover:underline"
+                >
+                  {book.categories[0].name}
+                </Link>
+              ) : (
+                <span className="font-medium text-gray-900">Unknown</span>
+              )}
             </div>
             <div>
               <div className="text-sm text-gray-500 mb-1">Năm xuất bản</div>
@@ -121,8 +193,17 @@ export const BookDetails = () => {
               <BookOpen className="w-5 h-5" />
               <span>Đọc sách</span>
             </Link>
-            <button className="p-3 hover:bg-cream-300 rounded-full transition-colors">
-              <Bookmark className="w-6 h-6 text-gray-700" />
+            <button
+              onClick={handleToggleSave}
+              disabled={savingBook}
+              className={`p-3 hover:bg-cream-300 rounded-full transition-colors ${savingBook ? 'opacity-50 cursor-not-allowed' : ''
+                }`}
+              title={isSaved ? 'Bỏ lưu sách' : 'Lưu sách'}
+            >
+              <Bookmark
+                className={`w-6 h-6 transition-colors ${isSaved ? 'fill-accent-teal text-accent-teal' : 'text-gray-700'
+                  }`}
+              />
             </button>
             <button className="p-3 hover:bg-cream-300 rounded-full transition-colors">
               <Heart className="w-6 h-6 text-gray-700" />

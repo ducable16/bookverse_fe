@@ -80,6 +80,7 @@ export interface AuthorRequest {
 export interface CreateAuthorRequest {
     name: string;
     biography: string;
+    avatar?: string;
 }
 
 export interface UpdateAuthorRequest {
@@ -235,12 +236,13 @@ export interface ReadingHistory {
 
 export interface SavedBook {
     id: number;
-    userId: number;
-    bookId: number;
+    user: UserResponse;
     book: {
         id: number;
         title: string;
+        slug: string;
         coverImage: string;
+        description: string;
         author: {
             name: string;
         };
